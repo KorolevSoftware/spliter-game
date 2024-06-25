@@ -9,6 +9,7 @@ project(Splitter
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)  
 
+
 FetchContent_Declare(sdl
  GIT_REPOSITORY "https://github.com/libsdl-org/SDL"
  GIT_TAG "ac13ca9ab691e13e8eebe9684740ddcb0d716203"
@@ -31,12 +32,17 @@ list(TRANSFORM ENGINE PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/engine/)
 source_group("Engine" FILES ${ENGINE})  
 
 
-add_executable(${PROJECT_NAME} ${INITIALIZATION} ${ENGINE})
+add_executable(${PROJECT_NAME} ${INITIALIZATION} ${ENGINE} dependency/glad/src/glad.c )
 target_include_directories(${PROJECT_NAME} PRIVATE
-	${CMAKE_CURRENT_SOURCE_DIR}/dependency/spdlog/include/
+	${CMAKE_CURRENT_SOURCE_DIR}/dependency/spdlog/include
+	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glad/include
+	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glm/glm
 	)
 
 target_link_libraries(${PROJECT_NAME}
 	SDL2::SDL2
 	SDL2::SDL2main
 )
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON) 

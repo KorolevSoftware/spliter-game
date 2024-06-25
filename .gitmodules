@@ -1,3 +1,6 @@
 [submodule "dependency/spdlog"]
 	path = dependency/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "dependency/glm"]
+	path = dependency/glm
+	url = https://github.com/g-truc/glm
