@@ -7,3 +7,7 @@
 [submodule "dependency/sokol"]
 	path = dependency/sokol
 	url = https://github.com/floooh/sokol
+[submodule "dependency/sokol-toolkit-bin"]
+	path = dependency/sokol-toolkit-bin
+	url = https://github.com/KorolevSoftware/sokol-tools-bin-only-cmake
+	branch = cmake-only
