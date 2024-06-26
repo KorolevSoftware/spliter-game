@@ -25,18 +25,23 @@ set(INITIALIZATION
 set(ENGINE
 	window.cpp
 	window.h
+	graphics.cpp
+	graphics.h
 )
 
 list(TRANSFORM ENGINE PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/engine/)
 
 source_group("Engine" FILES ${ENGINE})  
 
+include(${sokoltools_SOURCE_DIR}/sokol_shader_utils.cmake)
+sokol_shader(triangle-sapp.glsl hlsl5)
 
 add_executable(${PROJECT_NAME} ${INITIALIZATION} ${ENGINE} dependency/glad/src/glad.c )
 target_include_directories(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/spdlog/include
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glad/include
-	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glm/glm
+	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glm
+	${CMAKE_CURRENT_SOURCE_DIR}/dependency/sokol
 	)
 
 target_link_libraries(${PROJECT_NAME}

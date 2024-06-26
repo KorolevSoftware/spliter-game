@@ -3,6 +3,7 @@
 //#include <SDL_opengles2.h>
 #include <iostream>
 #include <glad/glad.h>
+#include <spdlog/spdlog.h>
 
 namespace Engine {
     WindowStatus Window::initialize(std::string_view name, uint32_t width, uint32_t height) {
