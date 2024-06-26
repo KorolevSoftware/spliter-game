@@ -19,6 +19,10 @@ int main(int argc, char* argv[]) {
 
     while (true) { // engine loop
         osEvents(main_window);
+    
+        main_graphics.beginDraw();
+
+        main_graphics.endDraw();
         main_window.present();
     }
     return 0;

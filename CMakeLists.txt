@@ -33,16 +33,21 @@ list(TRANSFORM ENGINE PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/engine/)
 
 source_group("Engine" FILES ${ENGINE})  
 
-include(${sokoltools_SOURCE_DIR}/sokol_shader_utils.cmake)
-sokol_shader(triangle-sapp.glsl hlsl5)
+include(dependency/sokol-toolkit-bin/sokol_shader_utils.cmake)
 
-add_executable(${PROJECT_NAME} ${INITIALIZATION} ${ENGINE} dependency/glad/src/glad.c )
+sokol_shader(triangle-sapp.glsl glsl300es)
+
+add_executable(${PROJECT_NAME} ${INITIALIZATION} ${ENGINE} dependency/glad/src/glad.c ${CMAKE_CURRENT_BINARY_DIR}/compile_shaders/triangle-sapp.glsl.h)
 target_include_directories(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/spdlog/include
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glad/include
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glm
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/sokol
 	)
+
+	make_directory(${CMAKE_CURRENT_BINARY_DIR}/compile_shaders)
+
+	target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/compile_shaders )
 
 target_link_libraries(${PROJECT_NAME}
 	SDL2::SDL2

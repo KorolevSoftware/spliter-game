@@ -47,12 +47,7 @@ namespace Engine {
         return WindowStatus::Success;
     }
 
-    void Window::present() {
-
-        SDL_GL_MakeCurrent(window, GLContext);
-        glClearColor(51 / 255.0, 51 / 255.0, 51 / 255.0, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+    void Window::present() {        
         SDL_GL_SwapWindow(window);
     }
     
