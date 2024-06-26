@@ -15,7 +15,7 @@ namespace Engine {
             SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED,
             width, height,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
         if (window == nullptr) {
             spdlog::critical("SDL_CreateWindow error create window");
@@ -55,6 +55,14 @@ namespace Engine {
         SDL_Event ev;
 
         if (SDL_PollEvent(&ev)) {
+            if (ev.type == SDL_WINDOWEVENT) {
+                if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
+                    width = ev.window.data1;
+                    height = ev.window.data2;
+                    spdlog::info("Screen resize to: {0}x{1}", width, height);
+                }
+                
+            }
             wEvent.released = ev.type == SDL_MOUSEBUTTONUP;
             wEvent.pressed = ev.type == SDL_MOUSEBUTTONDOWN;
             wEvent.posX = (uint32_t)ev.button.x;
@@ -62,5 +70,11 @@ namespace Engine {
             return true;
         }
         return false;
+    }
+    uint32_t Window::getWidth() {
+        return width;
+    }
+    uint32_t Window::getHeight() {
+        return height;
     }
 }

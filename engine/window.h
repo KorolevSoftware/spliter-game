@@ -22,7 +22,8 @@ namespace Engine {
 
 		uint32_t width, height;
 		bool getEvent(WindowEvent& event);
-
+		uint32_t getWidth();
+		uint32_t getHeight();
 		WindowStatus initialize(std::string_view name, uint32_t width, uint32_t height);
 		WindowStatus finalize();
 		void present();

@@ -27,6 +27,8 @@ set(ENGINE
 	window.h
 	graphics.cpp
 	graphics.h
+	gui.cpp
+	gui.h
 )
 
 list(TRANSFORM ENGINE PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/engine/)
