@@ -12,6 +12,8 @@
 #include <sokol_gfx.h>
 #include <triangle-sapp.glsl.h>
 #include <spdlog/spdlog.h>
+#include <vector>
+
 namespace {
     static struct {
         sg_pipeline pip;
@@ -26,14 +28,28 @@ namespace {
     glm::vec2 virtualResolution(600, 600);
 }
 
+
+std::vector<float> guiVertexData;
+uint32_t current_index = 0;
+glm::vec2 parent_pffset;
+
+glm::vec2 now_size;
 namespace Engine {
 	void Graphics::drawBox(glm::vec3 size, glm::vec4 color) {}
 	void Graphics::drawRect2D(glm::vec2 size, glm::vec2 position) {}
 
     void Graphics::drawGui(const GUINode& node) {
-        //glm::vec2 adjustScale;
         glm::vec2 realResolution = glm::vec2((float)state.swapchain.width, (float)state.swapchain.height);
-        glm::vec2 adjustScale = realResolution / virtualResolution;
+        glm::vec2 divResolution = virtualResolution;
+        if (node.parent) {
+            divResolution = node.parent->size;
+            realResolution = now_size;
+        } else {
+           
+        }
+      
+        glm::vec2 adjustScale = realResolution / divResolution;
+
         float temp;
         switch (node.adjustMod) {
         case GUIAdjustMod::Fit:
@@ -47,18 +63,10 @@ namespace Engine {
             break;
         } // case GUIAdjustMod::Stretch: skip adjustScale correct
 
-        glm::vec2 offset = (realResolution - virtualResolution * adjustScale) * 0.5f;
-
-
-
-        glm::vec2 scaled_position = node.position + offset;
-        glm::vec2 n2_pos = 1.0f / adjustScale * scaled_position;
+        glm::vec2 offset = (realResolution - divResolution * adjustScale) * 0.5f;
         
-
-
         glm::vec2 p1;
         glm::vec2 p2;
-
 
         //-----------------------p1
         //|                      |
@@ -72,6 +80,7 @@ namespace Engine {
 
         // gen primitive
         glm::vec2 drawDim = node.size / 2.0f;
+
         switch (node.pivot) {
         case GUIPivot::Centre:
             p1 = node.position + drawDim;
@@ -119,7 +128,6 @@ namespace Engine {
             break;
         }
 
-
         if (node.anchorX) {
             offset.x = 0;
         }
@@ -128,6 +136,10 @@ namespace Engine {
             offset.y = 0;
         }
       
+        if (node.parent) {
+            offset += parent_pffset;
+        }
+
         if (node.adjustMod == GUIAdjustMod::Stretch) {
             p1 *= adjustScale;
             p2 *= adjustScale;
@@ -135,51 +147,78 @@ namespace Engine {
             p1 = offset + p1 * adjustScale;
             p2 = offset + p2 * adjustScale;
         }
+        if (!node.parent) {
+            parent_pffset = offset + (node.position)* adjustScale;
+            now_size = node.size * adjustScale;
+        }
+        //float vertices[] = {
+        //    // positions            colors
+        //     p2.x,  p1.y, 0.5f,     node.color.r, node.color.g, node.color.b, node.color.a,
+        //     p1.x,  p1.y, 0.5f,     node.color.r, node.color.g, node.color.b, node.color.a,
+        //     p1.x,  p2.y, 0.5f,     node.color.r, node.color.g, node.color.b, node.color.a,
+        //     p2.x,  p2.y, 0.5f,     node.color.r, node.color.g, node.color.b, node.color.a,
+        //};
 
-        float vertices[] = {
-            // positions            colors
-             p2.x,  p1.y, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
-             p1.x,  p1.y, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
-             p1.x,  p2.y, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,
-             p2.x,  p2.y, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,
-        };
+        
 
-        sg_update_buffer(state.from_update, SG_RANGE(vertices));
+        guiVertexData[current_index++] = p2.x;
+        guiVertexData[current_index++] = p1.y;
+        guiVertexData[current_index++] = 0.5f;
+        guiVertexData[current_index++] = node.color.r;
+        guiVertexData[current_index++] = node.color.g;
+        guiVertexData[current_index++] = node.color.b;
+        guiVertexData[current_index++] = node.color.a;
+
+        guiVertexData[current_index++] = p1.x;
+        guiVertexData[current_index++] = p1.y;
+        guiVertexData[current_index++] = 0.5f;
+        guiVertexData[current_index++] = node.color.r;
+        guiVertexData[current_index++] = node.color.g;
+        guiVertexData[current_index++] = node.color.b;
+        guiVertexData[current_index++] = node.color.a;
+
+        guiVertexData[current_index++] = p1.x;
+        guiVertexData[current_index++] = p2.y;
+        guiVertexData[current_index++] = 0.5f;
+        guiVertexData[current_index++] = node.color.r;
+        guiVertexData[current_index++] = node.color.g;
+        guiVertexData[current_index++] = node.color.b;
+        guiVertexData[current_index++] = node.color.a;
+
+        guiVertexData[current_index++] = p2.x;
+        guiVertexData[current_index++] = p2.y;
+        guiVertexData[current_index++] = 0.5f;
+        guiVertexData[current_index++] = node.color.r;
+        guiVertexData[current_index++] = node.color.g;
+        guiVertexData[current_index++] = node.color.b;
+        guiVertexData[current_index++] = node.color.a;
+        
+      
     }
 
 
 	void Graphics::initialize() {
-        
+        guiVertexData.resize(56);
 		sg_desc ff{0};
 		//ff.allocator.
 		sg_setup(ff);
-        float vertices[] = {
-            // positions            colors
-            -10.5f,  10.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
-             10.5f,  10.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
-             10.5f, -10.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,
-            -10.5f, -10.5f, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,
-        };
-
-        // an index buffer with 2 triangles
-        uint16_t indices[] = { 0, 1, 2,  0, 2, 3 };
-        sg_buffer_desc index_buf{ 0 };
-        index_buf.type = SG_BUFFERTYPE_INDEXBUFFER;
-        index_buf.data = SG_RANGE(indices);
-        index_buf.label = "quad-indices";
-
 
         sg_buffer_desc buf{0};
-        buf.data = {0, sizeof(vertices)};
+        buf.data = {0, sizeof(float)* 56 };
         buf.label = "triangle-vertices";
         buf.usage = SG_USAGE_STREAM;
         state.from_update = sg_make_buffer(buf);
         state.bind.vertex_buffers[0] = state.from_update;
         
+
+
+        // an index buffer with 2 triangles
+        uint16_t indices[] = { 0, 1, 2,  0, 2, 3,  4, 5, 6,  4, 6, 7 };
+        sg_buffer_desc index_buf{ 0 };
+        index_buf.type = SG_BUFFERTYPE_INDEXBUFFER;
+        index_buf.data = SG_RANGE(indices);
+        index_buf.label = "quad-indices";
         state.bind.index_buffer = sg_make_buffer(index_buf);
-
-
-
         // create shader from code-generated sg_shader_desc
         sg_shader shd = sg_make_shader(triangle_shader_desc(sg_query_backend()));
 
@@ -191,6 +230,7 @@ namespace Engine {
         desc.label = "triangle-pipeline";
         desc.index_type = SG_INDEXTYPE_UINT16;
         desc.cull_mode = SG_CULLMODE_BACK;
+        desc.depth.write_enabled = false;
         state.pip = sg_make_pipeline(desc);
 
         // a pass action to clear framebuffer to black
@@ -217,14 +257,17 @@ namespace Engine {
         sg_apply_pipeline(state.pip);
         sg_apply_bindings(state.bind);
         sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(state.ortho));
-        sg_draw(0, 6, 1);
-
 
     }
 
     void Graphics::endDraw() {
+      
+        sg_update_buffer(state.from_update, { guiVertexData.data(), sizeof(float) * guiVertexData.size() });
+        sg_draw(0, 12, 1);
+
         sg_end_pass();
         sg_commit();
+        current_index = 0;
     }
 
     void Graphics::setMatrixGUI() {

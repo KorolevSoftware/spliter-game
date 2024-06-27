@@ -19,31 +19,30 @@ int main(int argc, char* argv[]) {
 
     Engine::GUINode node1;
     node1.position = glm::vec2(300,300);
-    node1.size = glm::vec2(100, 100);
-    node1.adjustMod = Engine::GUIAdjustMod::Zoom;
-    node1.anchorX = true;
+    node1.size = glm::vec2(300, 300);
+    node1.adjustMod = Engine::GUIAdjustMod::Fit;
+    node1.anchorX = false;
     node1.anchorY = false;
-    node1.pivot = Engine::GUIPivot::NorthWest;
+    node1.pivot = Engine::GUIPivot::Centre;
+    node1.color = glm::vec4(1, 0, 0, 1);
+    node1.parent = nullptr;
 
     Engine::GUINode node2;
-    node2.position = glm::vec2(600, 0);
+    node2.position = glm::vec2(100, 0);
     node2.size = glm::vec2(100, 100);
-
-    Engine::GUINode node3;
-    node3.position = glm::vec2(0, 600);
-    node3.size = glm::vec2(100, 100);
-
-    Engine::GUINode node4;
-    node4.position = glm::vec2(600, 600);
-    node4.size = glm::vec2(100, 100);
-
-
+    node2.adjustMod = Engine::GUIAdjustMod::Fit;
+    node2.anchorX = false;
+    node2.anchorY = false;
+    node2.pivot = Engine::GUIPivot::Centre;
+    node2.color = glm::vec4(0, 0, 1, 1);
+    node2.parent = &node1;
 
     while (true) { // engine loop
         osEvents(main_window);
     
         main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
         main_graphics.drawGui(node1);
+        main_graphics.drawGui(node2);
 
         main_graphics.endDraw();
 

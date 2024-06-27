@@ -9,7 +9,13 @@ namespace Engine {
     WindowStatus Window::initialize(std::string_view name, uint32_t width, uint32_t height) {
         this->width = width;
         this->height = height;
-
+        SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
         //Create a window
         window = SDL_CreateWindow(name.data(),
             SDL_WINDOWPOS_UNDEFINED,
