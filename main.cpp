@@ -20,7 +20,10 @@ int main(int argc, char* argv[]) {
     Engine::GUINode node1;
     node1.position = glm::vec2(300,300);
     node1.size = glm::vec2(100, 100);
-    node1.adjustMod = Engine::GUIAdjustMod::Stretch;
+    node1.adjustMod = Engine::GUIAdjustMod::Zoom;
+    node1.anchorX = true;
+    node1.anchorY = false;
+    node1.pivot = Engine::GUIPivot::NorthWest;
 
     Engine::GUINode node2;
     node2.position = glm::vec2(600, 0);

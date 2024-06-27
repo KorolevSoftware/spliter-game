@@ -2,16 +2,16 @@
 #include "glm/fwd.hpp"
 #include <glm/vec2.hpp> // glm::vec2
 namespace Engine {
-	enum class GUIAnchorY {
-		None,
-		Top,
-		Bottomn
-	};
-
-	enum class GUIAnchorX {
-		None,
-		Left,
-		Right
+	enum class GUIPivot {
+		Centre,
+		North,
+		NorthEast,
+		East,
+		SouthEast,
+		South,
+		SouthWest,
+		West,
+		NorthWest,
 	};
 
 	enum class GUIAdjustMod {
@@ -23,8 +23,9 @@ namespace Engine {
 	struct GUINode {
 		glm::vec2 size;
 		glm::vec2 position;
-		GUIAnchorY anchorY;
-		GUIAnchorX anchorX;
+		bool anchorY;
+		bool anchorX;
+		GUIPivot pivot;
 		GUIAdjustMod adjustMod;
 	};
 

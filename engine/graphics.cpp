@@ -24,10 +24,6 @@ namespace {
     } state;
 
     glm::vec2 virtualResolution(600, 600);
-
-
-
-
 }
 
 namespace Engine {
@@ -35,46 +31,115 @@ namespace Engine {
 	void Graphics::drawRect2D(glm::vec2 size, glm::vec2 position) {}
 
     void Graphics::drawGui(const GUINode& node) {
-        float minDimRealScreen = 0;
+        //glm::vec2 adjustScale;
+        glm::vec2 realResolution = glm::vec2((float)state.swapchain.width, (float)state.swapchain.height);
+        glm::vec2 adjustScale = realResolution / virtualResolution;
+        float temp;
         switch (node.adjustMod) {
-        case GUIAdjustMod::Stretch:
         case GUIAdjustMod::Fit:
-            minDimRealScreen = std::min(state.swapchain.width, state.swapchain.height);
+            temp = std::min(adjustScale.x, adjustScale.y);
+            adjustScale = glm::vec2(temp, temp);
             break;
 
         case GUIAdjustMod::Zoom:
-            minDimRealScreen = std::max(state.swapchain.width, state.swapchain.height);
+            temp = std::max(adjustScale.x, adjustScale.y);
+            adjustScale = glm::vec2(temp, temp);
             break;
-        }
+        } // case GUIAdjustMod::Stretch: skip adjustScale correct
+
+        glm::vec2 offset = (realResolution - virtualResolution * adjustScale) * 0.5f;
+
+
+
+        glm::vec2 scaled_position = node.position + offset;
+        glm::vec2 n2_pos = 1.0f / adjustScale * scaled_position;
         
-        float maxDimVirtualScreen = std::min(virtualResolution.x, virtualResolution.y);
-        float screenSize = minDimRealScreen / maxDimVirtualScreen;
-        //spdlog::info("screen_size {0}", screenSize);
 
-        glm::vec2 drawSize = node.size;
-
-        glm::vec2 virtualScreen = virtualResolution;
-        glm::vec2 realsScreen = glm::vec2((float)state.swapchain.width, (float)state.swapchain.height);
-        glm::vec2 offset = (realsScreen - virtualScreen* screenSize) * 0.5f;
-        glm::vec2 drawDim = drawSize / 2.0f ;
 
         glm::vec2 p1;
         glm::vec2 p2;
 
-        if (node.adjustMod == GUIAdjustMod::Stretch) {
-            glm::vec2 stretch = realsScreen / virtualScreen;
-            p1 = offset + node.position * screenSize + drawDim * stretch;
-            p2 = offset + node.position * screenSize - drawDim * stretch;
-        } else {
-            p1 = offset + (node.position + drawDim) * screenSize;
-            p2 = offset + (node.position - drawDim) * screenSize;
+
+        //-----------------------p1
+        //|                      |
+        //|                      |
+        //|                      |
+        //|                      |
+        //|                      |
+        //|                      |
+        //|                      |
+        //p2----------------------
+
+        // gen primitive
+        glm::vec2 drawDim = node.size / 2.0f;
+        switch (node.pivot) {
+        case GUIPivot::Centre:
+            p1 = node.position + drawDim;
+            p2 = node.position - drawDim;
+            break;
+
+        case GUIPivot::North:
+            p1 = node.position + drawDim - glm::vec2(0, drawDim.y);
+            p2 = node.position - drawDim - glm::vec2(0, drawDim.y);
+            break;
+
+        case GUIPivot::NorthEast:
+            p1 = node.position;
+            p2 = node.position - node.size;
+            break;
+
+        case GUIPivot::East:
+            p1 = node.position + drawDim - glm::vec2(drawDim.x, 0);
+            p2 = node.position - drawDim - glm::vec2(drawDim.x, 0);
+            break;
+
+        case GUIPivot::SouthEast:
+            p1 = node.position + glm::vec2(0, node.size.y);
+            p2 = node.position - glm::vec2(node.size.x, 0);
+            break;
+
+        case GUIPivot::South:
+            p1 = node.position + glm::vec2(drawDim.x, node.size.y);
+            p2 = node.position + glm::vec2(-drawDim.x, 0);
+            break;
+
+        case GUIPivot::SouthWest:
+            p1 = node.position + glm::vec2(node.size.x, node.size.y);
+            p2 = node.position;
+            break;
+
+        case GUIPivot::West:
+            p1 = node.position + glm::vec2(node.size.x, drawDim.y);
+            p2 = node.position + glm::vec2(0, -drawDim.y);
+            break;
+
+        case GUIPivot::NorthWest:
+            p1 = node.position + glm::vec2(node.size.x, 0 );
+            p2 = node.position + glm::vec2(0, -node.size.y);
+            break;
         }
 
+
+        if (node.anchorX) {
+            offset.x = 0;
+        }
+
+        if (node.anchorY) {
+            offset.y = 0;
+        }
+      
+        if (node.adjustMod == GUIAdjustMod::Stretch) {
+            p1 *= adjustScale;
+            p2 *= adjustScale;
+        } else {
+            p1 = offset + p1 * adjustScale;
+            p2 = offset + p2 * adjustScale;
+        }
 
         float vertices[] = {
             // positions            colors
              p2.x,  p1.y, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
-             p1.x,  p1.y, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
+             p1.x,  p1.y, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
              p1.x,  p2.y, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f,
              p2.x,  p2.y, 0.5f,     1.0f, 1.0f, 0.0f, 1.0f,
         };
@@ -125,6 +190,7 @@ namespace Engine {
         desc.layout.attrs[ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4;
         desc.label = "triangle-pipeline";
         desc.index_type = SG_INDEXTYPE_UINT16;
+        desc.cull_mode = SG_CULLMODE_BACK;
         state.pip = sg_make_pipeline(desc);
 
         // a pass action to clear framebuffer to black
