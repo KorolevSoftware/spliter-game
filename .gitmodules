@@ -11,3 +11,8 @@
 	path = dependency/sokol-toolkit-bin
 	url = https://github.com/KorolevSoftware/sokol-tools-bin-only-cmake
 	branch = cmake-only
+[submodule "dependency/SDL2Image"]
+	path = dependency/SDL2Image
+	url = https://github.com/libsdl-org/SDL_image.git
+[submodule "dependency\\SDL2Image\\"]
+	branch = release-2.8.1

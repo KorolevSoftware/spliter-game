@@ -47,10 +47,11 @@ int main(int argc, char* argv[]) {
         // Draw gui
         composer.compose(node1, glm::vec2(600, 600), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
         main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
-        composer.clearVertexBuffer();
+        
 
         main_graphics.endDraw();
         main_window.present();
+        composer.clearVertexBuffer();
     }
     return 0;
 }

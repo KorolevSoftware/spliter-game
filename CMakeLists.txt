@@ -31,6 +31,7 @@ set(ENGINE
 	gui.h
 )
 
+add_subdirectory(dependency/SDL2Image)
 list(TRANSFORM ENGINE PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/engine/)
 
 source_group("Engine" FILES ${ENGINE})  
@@ -53,6 +54,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/c
 
 target_link_libraries(${PROJECT_NAME}
 	SDL2::SDL2
+	SDL2::Image
 	SDL2::SDL2main
 )
 

@@ -20,19 +20,16 @@ namespace {
         sg_bindings bind;
         sg_pass_action pass_action;
         sg_swapchain swapchain;
-        sg_buffer from_update;
+        sg_buffer guiBuffer;
         glm::mat4 ortho;
-        
     } state;
-
-    glm::vec2 virtualResolution(600, 600);
 }
 
 
 namespace Engine {
 
     void Graphics::drawGui(const uint8_t* data, uint32_t sizeofdata, uint32_t vertexCount) {
-        sg_update_buffer(state.from_update, { data, sizeofdata });
+        sg_update_buffer(state.guiBuffer, { data, sizeofdata });
         sg_draw(0, vertexCount, 1);
     }
 
@@ -43,11 +40,11 @@ namespace Engine {
         sg_setup(ff);
 
         sg_buffer_desc buf{ 0 };
-        buf.data = { 0, sizeof(float) * 100 };
+        buf.data = { 0, sizeof(float) * 1000 };
         buf.label = "triangle-vertices";
         buf.usage = SG_USAGE_STREAM;
-        state.from_update = sg_make_buffer(buf);
-        state.bind.vertex_buffers[0] = state.from_update;
+        state.guiBuffer = sg_make_buffer(buf);
+        state.bind.vertex_buffers[0] = state.guiBuffer;
         sg_shader shd = sg_make_shader(triangle_shader_desc(sg_query_backend()));
 
         // create a pipeline object (default render states are fine for triangle)
@@ -62,12 +59,25 @@ namespace Engine {
         desc.depth.write_enabled = false;
         state.pip = sg_make_pipeline(desc);
 
-        sg_sampler_desc sampler;
+        sg_sampler_desc sampler{0};
         sampler.min_filter = SG_FILTER_LINEAR;
         sampler.mag_filter = SG_FILTER_LINEAR;
-        state.bind.fs.samplers[SLOT_smp] = sg_make_sampler(sampler);
+        sampler.mipmap_filter = SG_FILTER_LINEAR;
 
+        state.bind.fs.samplers[SLOT_smp] = sg_make_sampler(sampler);
         state.bind.fs.images[SLOT_tex] = sg_alloc_image();
+        
+
+        sg_init_image(state.bind.fs.images[SLOT_tex], &(sg_image_desc){
+            .width = png_width,
+                .height = png_height,
+                .pixel_format = SG_PIXELFORMAT_RGBA8,
+                .data.subimage[0][0] = {
+                    .ptr = pixels,
+                    .size = (size_t)(png_width * png_height * 4),
+            }
+        });
+
 
         // a pass action to clear framebuffer to black
         sg_pass_action pass;
