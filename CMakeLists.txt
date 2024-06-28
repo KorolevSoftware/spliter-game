@@ -54,7 +54,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/c
 
 target_link_libraries(${PROJECT_NAME}
 	SDL2::SDL2
-	SDL2::Image
+	SDL2_image::SDL2_image
 	SDL2::SDL2main
 )
 

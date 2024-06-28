@@ -4,12 +4,15 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <spdlog/spdlog.h>
+#include <SDL_image.h>
 
 namespace Engine {
     WindowStatus Window::initialize(std::string_view name, uint32_t width, uint32_t height) {
         this->width = width;
         this->height = height;
         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+        IMG_Init(IMG_INIT_PNG);
+
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -53,6 +56,21 @@ namespace Engine {
         return WindowStatus::Success;
     }
 
+    void Window::loadImage(std::filesystem::path path, std::vector<uint8_t>& pixels, uint8_t& depth, uint32_t& width, uint32_t& height) {
+        SDL_Surface* img = IMG_Load(path.string().c_str());
+        pixels.reserve(img->h * img->pitch);
+        std::copy(
+            reinterpret_cast<uint8_t*>(img->pixels),
+            reinterpret_cast<uint8_t*>(img->pixels) + img->h * img->pitch,
+            std::back_inserter(pixels)
+        );
+        depth = img->pitch / img->w;
+        width = img->w;
+        height = img->h;
+        SDL_FreeSurface(img);
+
+    }
+
     void Window::present() {        
         SDL_GL_SwapWindow(window);
     }
@@ -77,9 +95,11 @@ namespace Engine {
         }
         return false;
     }
+
     uint32_t Window::getWidth() {
         return width;
     }
+
     uint32_t Window::getHeight() {
         return height;
     }

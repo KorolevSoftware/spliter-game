@@ -68,15 +68,8 @@ namespace Engine {
         state.bind.fs.images[SLOT_tex] = sg_alloc_image();
         
 
-        sg_init_image(state.bind.fs.images[SLOT_tex], &(sg_image_desc){
-            .width = png_width,
-                .height = png_height,
-                .pixel_format = SG_PIXELFORMAT_RGBA8,
-                .data.subimage[0][0] = {
-                    .ptr = pixels,
-                    .size = (size_t)(png_width * png_height * 4),
-            }
-        });
+        
+   
 
 
         // a pass action to clear framebuffer to black
@@ -108,6 +101,25 @@ namespace Engine {
     void Graphics::endDraw() {
         sg_end_pass();
         sg_commit();
+    }
+
+    void Graphics::setImage(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t depth) {
+        sg_image_desc imageTexture{0};
+        imageTexture.width = width;
+        imageTexture.height = height;
+        imageTexture.pixel_format = SG_PIXELFORMAT_RGBA8;
+
+        imageTexture.data.subimage[0][0] = { pixels.data(), (size_t)(width * height * depth) };
+
+        sg_init_image(state.bind.fs.images[SLOT_tex], imageTexture);
+        /*.width = png_width,
+            .height = png_height,
+            .pixel_format = SG_PIXELFORMAT_RGBA8,
+            .data.subimage[0][0] = {
+                .ptr = pixels,
+                .size = (size_t)(png_width * png_height * 4),
+        }
+    });*/
     }
 
 }

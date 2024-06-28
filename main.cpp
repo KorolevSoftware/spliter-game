@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     node1.anchorX = false;
     node1.anchorY = false;
     node1.pivot = Engine::GUIPivot::Centre;
-    node1.color = glm::vec4(1, 0, 0, 1);
+    node1.color = glm::vec4(1, 1, 1, 1);
 
     Engine::GUINode node2;
     node2.position = glm::vec2(100, 0);
@@ -39,6 +39,11 @@ int main(int argc, char* argv[]) {
 
     Engine::GUIComposer composer(100);
 
+    std::vector<uint8_t> tex_image;
+    uint8_t depth;
+    uint32_t width, height;
+    main_window.loadImage("cat.png", tex_image, depth, width, height);
+    main_graphics.setImage(tex_image, width, height, depth);
     while (true) { // engine loop
         osEvents(main_window);
     

@@ -14,5 +14,4 @@
 [submodule "dependency/SDL2Image"]
 	path = dependency/SDL2Image
 	url = https://github.com/libsdl-org/SDL_image.git
-[submodule "dependency\\SDL2Image\\"]
-	branch = release-2.8.1
+	branch = SDL2
