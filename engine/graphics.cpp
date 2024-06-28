@@ -29,175 +29,21 @@ namespace {
 }
 
 
-std::vector<float> guiVertexData;
-uint32_t current_index = 0;
-glm::vec2 parent_pffset;
-
-glm::vec2 now_size;
 namespace Engine {
-	void Graphics::drawBox(glm::vec3 size, glm::vec4 color) {}
-	void Graphics::drawRect2D(glm::vec2 size, glm::vec2 position) {}
 
-    void Graphics::drawGui(const GUINode& node, glm::vec2 localResolution, glm::vec2 actualResolution,  glm::vec2 parentOffset) {
-        glm::vec2 adjustScale = actualResolution / localResolution;
-
-        float temp;
-        switch (node.adjustMod) {
-        case GUIAdjustMod::Fit:
-            temp = std::min(adjustScale.x, adjustScale.y);
-            adjustScale = glm::vec2(temp, temp);
-            break;
-
-        case GUIAdjustMod::Zoom:
-            temp = std::max(adjustScale.x, adjustScale.y);
-            adjustScale = glm::vec2(temp, temp);
-            break;
-        } // case GUIAdjustMod::Stretch: skip adjustScale correct
-
-        glm::vec2 offset = (actualResolution - localResolution * adjustScale) * 0.5f;
-        
-        glm::vec2 p1;
-        glm::vec2 p2;
-
-        //-----------------------p1
-        //|                      |
-        //|                      |
-        //|                      |
-        //|                      |
-        //|                      |
-        //|                      |
-        //|                      |
-        //p2----------------------
-
-        // gen primitive
-        glm::vec2 drawDim = node.size / 2.0f;
-
-        switch (node.pivot) {
-        case GUIPivot::Centre:
-            p1 = node.position + drawDim;
-            p2 = node.position - drawDim;
-            break;
-
-        case GUIPivot::North:
-            p1 = node.position + drawDim - glm::vec2(0, drawDim.y);
-            p2 = node.position - drawDim - glm::vec2(0, drawDim.y);
-            break;
-
-        case GUIPivot::NorthEast:
-            p1 = node.position;
-            p2 = node.position - node.size;
-            break;
-
-        case GUIPivot::East:
-            p1 = node.position + drawDim - glm::vec2(drawDim.x, 0);
-            p2 = node.position - drawDim - glm::vec2(drawDim.x, 0);
-            break;
-
-        case GUIPivot::SouthEast:
-            p1 = node.position + glm::vec2(0, node.size.y);
-            p2 = node.position - glm::vec2(node.size.x, 0);
-            break;
-
-        case GUIPivot::South:
-            p1 = node.position + glm::vec2(drawDim.x, node.size.y);
-            p2 = node.position + glm::vec2(-drawDim.x, 0);
-            break;
-
-        case GUIPivot::SouthWest:
-            p1 = node.position + glm::vec2(node.size.x, node.size.y);
-            p2 = node.position;
-            break;
-
-        case GUIPivot::West:
-            p1 = node.position + glm::vec2(node.size.x, drawDim.y);
-            p2 = node.position + glm::vec2(0, -drawDim.y);
-            break;
-
-        case GUIPivot::NorthWest:
-            p1 = node.position + glm::vec2(node.size.x, 0 );
-            p2 = node.position + glm::vec2(0, -node.size.y);
-            break;
-        }
-
-        if (node.anchorX) {
-            offset.x = 0;
-        }
-
-        if (node.anchorY) {
-            offset.y = 0;
-        }
-      
-        offset += parentOffset;
-
-        if (node.adjustMod == GUIAdjustMod::Stretch) {
-            p1 *= adjustScale;
-            p2 *= adjustScale;
-        } else {
-            p1 = offset + p1 * adjustScale;
-            p2 = offset + p2 * adjustScale;
-        }
-
-        guiVertexData[current_index++] = p2.x;
-        guiVertexData[current_index++] = p1.y;
-        guiVertexData[current_index++] = 0.5f;
-        guiVertexData[current_index++] = node.color.r;
-        guiVertexData[current_index++] = node.color.g;
-        guiVertexData[current_index++] = node.color.b;
-        guiVertexData[current_index++] = node.color.a;
-
-        guiVertexData[current_index++] = p1.x;
-        guiVertexData[current_index++] = p1.y;
-        guiVertexData[current_index++] = 0.5f;
-        guiVertexData[current_index++] = node.color.r;
-        guiVertexData[current_index++] = node.color.g;
-        guiVertexData[current_index++] = node.color.b;
-        guiVertexData[current_index++] = node.color.a;
-
-        guiVertexData[current_index++] = p1.x;
-        guiVertexData[current_index++] = p2.y;
-        guiVertexData[current_index++] = 0.5f;
-        guiVertexData[current_index++] = node.color.r;
-        guiVertexData[current_index++] = node.color.g;
-        guiVertexData[current_index++] = node.color.b;
-        guiVertexData[current_index++] = node.color.a;
-
-        guiVertexData[current_index++] = p2.x;
-        guiVertexData[current_index++] = p2.y;
-        guiVertexData[current_index++] = 0.5f;
-        guiVertexData[current_index++] = node.color.r;
-        guiVertexData[current_index++] = node.color.g;
-        guiVertexData[current_index++] = node.color.b;
-        guiVertexData[current_index++] = node.color.a;
-
-        guiVertexData[current_index++] = p2.x;
-        guiVertexData[current_index++] = p1.y;
-        guiVertexData[current_index++] = 0.5f;
-        guiVertexData[current_index++] = node.color.r;
-        guiVertexData[current_index++] = node.color.g;
-        guiVertexData[current_index++] = node.color.b;
-        guiVertexData[current_index++] = node.color.a;
-
-        guiVertexData[current_index++] = p1.x;
-        guiVertexData[current_index++] = p2.y;
-        guiVertexData[current_index++] = 0.5f;
-        guiVertexData[current_index++] = node.color.r;
-        guiVertexData[current_index++] = node.color.g;
-        guiVertexData[current_index++] = node.color.b;
-        guiVertexData[current_index++] = node.color.a;
-
-        for (auto& child : node.childs) {
-            drawGui(child, node.size, node.size* adjustScale, offset + (node.position) * adjustScale);
-        }
+    void Graphics::drawGui(const uint8_t* data, uint32_t sizeofdata, uint32_t vertexCount) {
+        sg_update_buffer(state.from_update, { data, sizeofdata });
+        sg_draw(0, vertexCount, 1);
     }
 
-	void Graphics::initialize() {
-        guiVertexData.resize(100);
-		sg_desc ff{0};
-		//ff.allocator.
-		sg_setup(ff);
+    void Graphics::initialize() {
 
-        sg_buffer_desc buf{0};
-        buf.data = {0, sizeof(float)* 100 };
+        sg_desc ff{ 0 };
+        //ff.allocator.
+        sg_setup(ff);
+
+        sg_buffer_desc buf{ 0 };
+        buf.data = { 0, sizeof(float) * 100 };
         buf.label = "triangle-vertices";
         buf.usage = SG_USAGE_STREAM;
         state.from_update = sg_make_buffer(buf);
@@ -205,15 +51,23 @@ namespace Engine {
         sg_shader shd = sg_make_shader(triangle_shader_desc(sg_query_backend()));
 
         // create a pipeline object (default render states are fine for triangle)
-        sg_pipeline_desc desc {0};
+        sg_pipeline_desc desc{ 0 };
         desc.shader = shd;
         desc.layout.attrs[ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3;
         desc.layout.attrs[ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4;
+        desc.layout.attrs[ATTR_vs_texCoords0].format = SG_VERTEXFORMAT_FLOAT2;
         desc.label = "triangle-pipeline";
-        //desc.index_type = SG_INDEXTYPE_UINT16;
+
         desc.cull_mode = SG_CULLMODE_BACK;
         desc.depth.write_enabled = false;
         state.pip = sg_make_pipeline(desc);
+
+        sg_sampler_desc sampler;
+        sampler.min_filter = SG_FILTER_LINEAR;
+        sampler.mag_filter = SG_FILTER_LINEAR;
+        state.bind.fs.samplers[SLOT_smp] = sg_make_sampler(sampler);
+
+        state.bind.fs.images[SLOT_tex] = sg_alloc_image();
 
         // a pass action to clear framebuffer to black
         sg_pass_action pass;
@@ -242,16 +96,8 @@ namespace Engine {
     }
 
     void Graphics::endDraw() {
-        sg_update_buffer(state.from_update, { guiVertexData.data(), sizeof(float) * guiVertexData.size() });
-        sg_draw(0, 12, 1);
-
         sg_end_pass();
         sg_commit();
-        current_index = 0;
-    }
-
-    void Graphics::setMatrixGUI() {
-
     }
 
 }

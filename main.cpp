@@ -37,11 +37,18 @@ int main(int argc, char* argv[]) {
 
     node1.childs.push_back(node2);
 
+    Engine::GUIComposer composer(100);
+
     while (true) { // engine loop
         osEvents(main_window);
     
         main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
-        main_graphics.drawGui(node1, glm::vec2(600, 600), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
+
+        // Draw gui
+        composer.compose(node1, glm::vec2(600, 600), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
+        main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
+        composer.clearVertexBuffer();
+
         main_graphics.endDraw();
         main_window.present();
     }

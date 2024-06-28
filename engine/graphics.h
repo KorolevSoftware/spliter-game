@@ -3,14 +3,17 @@
 #include "gui.h"
 
 namespace Engine {
-
 	struct Graphics final {
+		enum class BufferType {
+			Static,
+			Dynamic,
+			Stream,
+		};
+		using GPUBuffer = uint32_t;
+
 		void initialize();
 		void beginDraw(uint32_t width, uint32_t height);
 		void endDraw();
-		void setMatrixGUI();
-		void drawBox(glm::vec3 size, glm::vec4 color);
-		void drawRect2D(glm::vec2 size, glm::vec2 position);
-		void drawGui(const GUINode& node, glm::vec2 localResolution, glm::vec2 actualResolution, glm::vec2 parentOffset);
+		void drawGui(const uint8_t* data, uint32_t sizeofdata, uint32_t vertexCount);
 	};
 };

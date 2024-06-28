@@ -1,6 +1,7 @@
 #pragma once
 #include "glm/fwd.hpp"
 #include <glm/vec2.hpp> // glm::vec2
+#include <glm/vec3.hpp> // glm::vec2
 #include <glm/vec4.hpp> // glm::vec2
 #include <list>
 #include <vector>
@@ -40,6 +41,8 @@ namespace Engine {
 		glm::vec3 position;
 		glm::vec4 color;
 		glm::vec2 texCoords;
+
+		GUIVertex(glm::vec3 position, glm::vec4 color, glm::vec2 texCoords);
 	};
 
 	struct GUIDrawCommand {
@@ -51,6 +54,10 @@ namespace Engine {
 	struct GUIComposer final {
 		GUIComposer(uint32_t poolSize);
 		bool compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
+		void clearVertexBuffer();
+		const uint8_t* getBufferData() const;
+		uint32_t getVertexCount() const;
+		uint32_t getRenderBufSizeof();
 
 	private:
 		std::vector<GUIVertex> vertexBuffer;
