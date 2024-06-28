@@ -11,6 +11,6 @@ namespace Engine {
 		void setMatrixGUI();
 		void drawBox(glm::vec3 size, glm::vec4 color);
 		void drawRect2D(glm::vec2 size, glm::vec2 position);
-		void drawGui(const GUINode& node);
+		void drawGui(const GUINode& node, glm::vec2 localResolution, glm::vec2 actualResolution, glm::vec2 parentOffset);
 	};
 };

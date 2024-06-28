@@ -25,7 +25,6 @@ int main(int argc, char* argv[]) {
     node1.anchorY = false;
     node1.pivot = Engine::GUIPivot::Centre;
     node1.color = glm::vec4(1, 0, 0, 1);
-    node1.parent = nullptr;
 
     Engine::GUINode node2;
     node2.position = glm::vec2(100, 0);
@@ -35,17 +34,15 @@ int main(int argc, char* argv[]) {
     node2.anchorY = false;
     node2.pivot = Engine::GUIPivot::Centre;
     node2.color = glm::vec4(0, 0, 1, 1);
-    node2.parent = &node1;
+
+    node1.childs.push_back(node2);
 
     while (true) { // engine loop
         osEvents(main_window);
     
         main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
-        main_graphics.drawGui(node1);
-        main_graphics.drawGui(node2);
-
+        main_graphics.drawGui(node1, glm::vec2(600, 600), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
         main_graphics.endDraw();
-
         main_window.present();
     }
     return 0;

@@ -4,4 +4,14 @@
 #include "gui.h"
 
 namespace Engine {
+	struct GUIVertex {
+		glm::vec3 position;
+		glm::vec4 color;
+		glm::vec2 texCoords;
+	};
+
+	struct GUIDrawCommand {
+
+	};
+
 };
