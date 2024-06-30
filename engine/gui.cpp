@@ -9,20 +9,33 @@ namespace Engine {
     }
 
 	bool GUIComposer::compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
-        glm::vec2 adjustScale = actualResolution / localResolution;
+        glm::vec2 aspectRaion = actualResolution / localResolution;
 
+        glm::vec2 adjustScale;
         float temp;
         switch (node.adjustMod) {
         case GUIAdjustMod::Fit:
-            temp = std::min(adjustScale.x, adjustScale.y);
+            temp = std::min(aspectRaion.x, aspectRaion.y);
             adjustScale = glm::vec2(temp, temp);
             break;
 
         case GUIAdjustMod::Zoom:
-            temp = std::max(adjustScale.x, adjustScale.y);
+            temp = std::max(aspectRaion.x, aspectRaion.y);
             adjustScale = glm::vec2(temp, temp);
             break;
+
+        case GUIAdjustMod::Stretch:
+            adjustScale = aspectRaion;
+            break;
         } // case GUIAdjustMod::Stretch: skip adjustScale correct
+
+        if (node.anchorX) {
+            adjustScale.x = aspectRaion.x;
+        }
+
+        if (node.anchorY) {
+            adjustScale.y = aspectRaion.y;
+        }
 
         glm::vec2 offset = (actualResolution - localResolution * adjustScale) * 0.5f;
 
@@ -39,73 +52,65 @@ namespace Engine {
         //|                      |
         //p2----------------------
 
+
+        glm::vec2 screenPosition = node.position* adjustScale + offset + parentOffset;
         // gen primitive
         glm::vec2 drawDim = node.size / 2.0f;
 
+        glm::vec2 strechFactor(1);
+        if (node.adjustMod == GUIAdjustMod::Stretch) {
+            strechFactor = adjustScale;
+
+        }
+
         switch (node.pivot) {
         case GUIPivot::Centre:
-            p1 = node.position + drawDim;
-            p2 = node.position - drawDim;
+            p1 = screenPosition + drawDim * strechFactor;
+            p2 = screenPosition - drawDim* strechFactor;
             break;
 
         case GUIPivot::North:
-            p1 = node.position + drawDim - glm::vec2(0, drawDim.y);
-            p2 = node.position - drawDim - glm::vec2(0, drawDim.y);
+            p1 = screenPosition + drawDim - glm::vec2(0, drawDim.y);
+            p2 = screenPosition - drawDim - glm::vec2(0, drawDim.y);
             break;
 
         case GUIPivot::NorthEast:
-            p1 = node.position;
-            p2 = node.position - node.size;
+            p1 = screenPosition;
+            p2 = screenPosition - node.size;
             break;
 
         case GUIPivot::East:
-            p1 = node.position + drawDim - glm::vec2(drawDim.x, 0);
-            p2 = node.position - drawDim - glm::vec2(drawDim.x, 0);
+            p1 = screenPosition + drawDim - glm::vec2(drawDim.x, 0);
+            p2 = screenPosition - drawDim - glm::vec2(drawDim.x, 0);
             break;
 
         case GUIPivot::SouthEast:
-            p1 = node.position + glm::vec2(0, node.size.y);
-            p2 = node.position - glm::vec2(node.size.x, 0);
+            p1 = screenPosition + glm::vec2(0, node.size.y);
+            p2 = screenPosition - glm::vec2(node.size.x, 0);
             break;
 
         case GUIPivot::South:
-            p1 = node.position + glm::vec2(drawDim.x, node.size.y);
-            p2 = node.position + glm::vec2(-drawDim.x, 0);
+            p1 = screenPosition + glm::vec2(drawDim.x, node.size.y);
+            p2 = screenPosition + glm::vec2(-drawDim.x, 0);
             break;
 
         case GUIPivot::SouthWest:
-            p1 = node.position + glm::vec2(node.size.x, node.size.y);
-            p2 = node.position;
+            p1 = screenPosition + glm::vec2(node.size.x, node.size.y);
+            p2 = screenPosition;
             break;
 
         case GUIPivot::West:
-            p1 = node.position + glm::vec2(node.size.x, drawDim.y);
-            p2 = node.position + glm::vec2(0, -drawDim.y);
+            p1 = screenPosition + glm::vec2(node.size.x, drawDim.y);
+            p2 = screenPosition + glm::vec2(0, -drawDim.y);
             break;
 
         case GUIPivot::NorthWest:
-            p1 = node.position + glm::vec2(node.size.x, 0);
-            p2 = node.position + glm::vec2(0, -node.size.y);
+            p1 = screenPosition + glm::vec2(node.size.x, 0);
+            p2 = screenPosition + glm::vec2(0, -node.size.y);
             break;
         }
 
-        if (node.anchorX) {
-            offset.x = 0;
-        }
-
-        if (node.anchorY) {
-            offset.y = 0;
-        }
-
-        offset += parentOffset;
-
-        if (node.adjustMod == GUIAdjustMod::Stretch) {
-            p1 *= adjustScale;
-            p2 *= adjustScale;
-        } else {
-            p1 = offset + p1 * adjustScale;
-            p2 = offset + p2 * adjustScale;
-        }
+        
 
         glm::vec3 position1(p2.x, p1.y, 0.5f);
         glm::vec3 position2(p1.x, p1.y, 0.5f);
@@ -124,7 +129,7 @@ namespace Engine {
         vertexBuffer.emplace_back(position6, node.color, glm::vec2(1.0f, 0.0f));
 
         for (auto& child : node.childs) {
-            return compose(child, node.size, node.size * adjustScale, offset + (node.position) * adjustScale);
+             compose(child, node.size, node.size * adjustScale, offset + (node.position) * adjustScale);
         }
         return true;
 	}
