@@ -29,16 +29,16 @@ namespace Engine {
             break;
         } // case GUIAdjustMod::Stretch: skip adjustScale correct
 
+        glm::vec2 offsetAdjustScale = adjustScale;
         if (node.anchorX) {
-            adjustScale.x = aspectRaion.x;
+            offsetAdjustScale.x = aspectRaion.x;
         }
 
         if (node.anchorY) {
-            adjustScale.y = aspectRaion.y;
+            offsetAdjustScale.y = aspectRaion.y;
         }
 
-        glm::vec2 offset = (actualResolution - localResolution * adjustScale) * 0.5f;
-
+        glm::vec2 offset = (actualResolution - localResolution * offsetAdjustScale) * 0.5f;
         glm::vec2 p1;
         glm::vec2 p2;
 
@@ -52,26 +52,19 @@ namespace Engine {
         //|                      |
         //p2----------------------
 
-
-        glm::vec2 screenPosition = node.position* adjustScale + offset + parentOffset;
+        glm::vec2 screenPosition = node.position * offsetAdjustScale + offset + parentOffset;
         // gen primitive
-        glm::vec2 drawDim = node.size / 2.0f;
-
-        glm::vec2 strechFactor(1);
-        if (node.adjustMod == GUIAdjustMod::Stretch) {
-            strechFactor = adjustScale;
-
-        }
-
+     
+        glm::vec2 drawDim = node.size / 2.0f * adjustScale;
         switch (node.pivot) {
         case GUIPivot::Centre:
-            p1 = screenPosition + drawDim * strechFactor;
-            p2 = screenPosition - drawDim* strechFactor;
+            p1 = screenPosition + drawDim;
+            p2 = screenPosition - drawDim;
             break;
 
         case GUIPivot::North:
-            p1 = screenPosition + drawDim - glm::vec2(0, drawDim.y);
-            p2 = screenPosition - drawDim - glm::vec2(0, drawDim.y);
+            p1 = screenPosition + (drawDim - glm::vec2(0, drawDim.y));
+            p2 = screenPosition - (drawDim - glm::vec2(0, drawDim.y));
             break;
 
         case GUIPivot::NorthEast:
@@ -80,8 +73,8 @@ namespace Engine {
             break;
 
         case GUIPivot::East:
-            p1 = screenPosition + drawDim - glm::vec2(drawDim.x, 0);
-            p2 = screenPosition - drawDim - glm::vec2(drawDim.x, 0);
+            p1 = screenPosition + (drawDim - glm::vec2(drawDim.x, 0));
+            p2 = screenPosition - (drawDim - glm::vec2(drawDim.x, 0));
             break;
 
         case GUIPivot::SouthEast:
@@ -109,7 +102,6 @@ namespace Engine {
             p2 = screenPosition + glm::vec2(0, -node.size.y);
             break;
         }
-
         
 
         glm::vec3 position1(p2.x, p1.y, 0.5f);

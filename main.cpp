@@ -1,13 +1,82 @@
 #include "engine/window.h"
 #include "engine/graphics.h"
 
+void createBox();
+
 bool osEvents(Engine::Window& window) {
     Engine::WindowEvent wEvent;
 
     while (window.getEvent(wEvent)) { // event loop
-
+        if (wEvent.pressed) {
+            createBox();
+            spdlog::info("createBox");
+        }
+           
     }
     return true;
+}
+
+glm::vec2 localResolution = glm::vec2(600, 1200);
+
+float y_offset = 10;
+float y_offset_off = 0;
+static std::vector<Engine::Box> boxes;
+
+bool moveByX = true;
+
+
+bool clipBox(const Engine::Box& first, Engine::Box& second, glm::vec3& newSize) {
+    glm::vec3 clipOrigins = first.position - second.position;
+    clipOrigins.x = abs(clipOrigins.x);
+    clipOrigins.y = abs(clipOrigins.y);
+    clipOrigins.z = abs(clipOrigins.z);
+    glm::vec3 depth = clipOrigins - first.size - second.size;
+
+    if (depth.x > 0.0f || depth.z > 0.0f)
+        return false;
+
+    second.position.x = (first.position.x + second.position.x) * 0.5f;
+    second.position.z = (first.position.z + second.position.z) * 0.5f;
+    second.size.x = abs(depth.x/2.0f);
+    second.size.z = abs(depth.z/2.0f);
+    return true;
+}
+
+bool gameOver = false;
+glm::vec3 nextSize;
+void createBox() {
+    size_t boxesCount = boxes.size();
+    if (boxesCount > 1) {
+
+        bool canByMake = clipBox(boxes[boxesCount - 2], boxes[boxesCount - 1], boxes[boxesCount - 1].size);
+
+        if (!canByMake) {
+            gameOver = true;
+            return;
+        }
+        moveByX = !moveByX;
+    }
+
+    Engine::Box nextBox;
+    if (moveByX) {
+        nextBox.position = glm::vec3(-3.0f, 0, 0);
+        if (boxesCount > 0)
+            nextBox.position.z = boxes[boxesCount - 1].position.z;
+    } else {
+        nextBox.position = glm::vec3(boxes[boxesCount - 1].position.x, 0, -3.0f);
+        if (boxesCount > 0)
+            nextBox.position.x = boxes[boxesCount - 1].position.x;
+    }
+    nextBox.position.y = y_offset;
+    nextBox.size = boxes.back().size;
+    y_offset += nextBox.size.y*2;
+    boxes.push_back(nextBox);
+}
+
+
+float lerp(float a, float b, float weight) {
+    // Ключевой момент: сумма коэффициентов `weight` и `1 - weight` равна 1.
+    return a * (1 - weight) + b * weight;
 }
 
 int main(int argc, char* argv[]) {
@@ -103,7 +172,6 @@ int main(int argc, char* argv[]) {
     testStrech.pivot = Engine::GUIPivot::Centre;
     testStrech.color = glm::vec4(1, 1, 1, 1);
 
-
     Engine::GUIComposer composer(500);
 
     std::vector<uint8_t> tex_image;
@@ -111,21 +179,69 @@ int main(int argc, char* argv[]) {
     uint32_t width, height;
     main_window.loadImage("cat.png", tex_image, depth, width, height);
     main_graphics.setImage(tex_image, width, height, depth);
+
+    Engine::Box mainBox;
+    mainBox.position = glm::vec3(0.0f, -2.2f, 0.0f);
+    mainBox.size = glm::vec3(0.8f, 0.1f, 0.8f);
+    //mainBox.size = glm::vec3(0.8f, 0.4f, 0.8f);
+
+
+    y_offset = mainBox.position.y + mainBox.size.y + 0.2f;
+
+    float dir = -1.0f;
+    nextSize = glm::vec3(0.8f, 0.2f, 0.8f);
+    boxes.push_back(mainBox);
+    createBox();
+    main_graphics.setZoom(3);
     while (true) { // engine loop
         osEvents(main_window);
-    
-        main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
-
-        // Draw gui
-        composer.compose(help, glm::vec2(600, 1200), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
-        composer.compose(score, glm::vec2(600, 1200), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
-        composer.compose(menu, glm::vec2(600, 1200), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
-        composer.compose(startButton, glm::vec2(600, 1200), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
-        composer.compose(testStrech, glm::vec2(600, 1200), glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight()), glm::vec2(0));
-
-        main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
         
+        Engine::Box& select = boxes.back();
 
+        if (select.position.x > 3.0f && moveByX) {
+            dir = -1;
+        }
+
+        if (select.position.x < -3.0f && moveByX) {
+            dir = 1;
+        }
+
+        if (select.position.z > 3.0f && !moveByX) {
+            dir = -1;
+        }
+
+        if (select.position.z < -3.0f && !moveByX) {
+            dir = 1;
+        }
+
+        if(moveByX) {
+            select.position.x += dir * 0.016;
+        } else {
+            select.position.z += dir * 0.016;
+        }
+        if (gameOver) {
+            main_graphics.setZoom(5);
+        }
+        y_offset_off = lerp(y_offset_off, y_offset, 0.016);
+        main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
+        {
+            glm::vec2 screenResolution = glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight());
+            glm::vec2 vec2Zero(0);
+            
+            // Draw gui
+            composer.compose(help,        localResolution, screenResolution, vec2Zero);
+            composer.compose(score,       localResolution, screenResolution, vec2Zero);
+            composer.compose(menu,        localResolution, screenResolution, vec2Zero);
+            composer.compose(startButton, localResolution, screenResolution, vec2Zero);
+            composer.compose(testStrech,  localResolution, screenResolution, vec2Zero);
+
+            main_graphics.drawBoxes(boxes);
+            main_graphics.setCameraOffsetY(y_offset_off);
+            // TODO fix gui
+            main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
+
+            //mainBox.size = glm::vec3(2.0f);
+        }
         main_graphics.endDraw();
         main_window.present();
         composer.clearVertexBuffer();
