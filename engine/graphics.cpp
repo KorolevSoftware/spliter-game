@@ -159,6 +159,12 @@ namespace {
 namespace Engine {
 
     void Graphics::drawGui(const uint8_t* data, uint32_t sizeofdata, uint32_t vertexCount) {
+        
+        // Draw GUi
+        glm::mat4 ortho = glm::ortho(0.0f, (float)state.swapchain.width, 0.0f, (float)state.swapchain.height);
+        sg_apply_pipeline(guiPipline.pip);
+        sg_apply_bindings(guiPipline.bind);
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(ortho));
         sg_update_buffer(state.guiBuffer, { data, sizeofdata });
         sg_draw(0, vertexCount, 1);
     }
@@ -199,11 +205,6 @@ namespace Engine {
         sg_begin_pass(pass);
         aspectRation = (float)width / (float)height;
 
-        // Draw GUi
-        glm::mat4 ortho = glm::ortho(0.0f, (float)width, 0.0f, (float)height);
-        sg_apply_pipeline(guiPipline.pip);
-        sg_apply_bindings(guiPipline.bind);
-        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(ortho));
     }
 
     void Graphics::endDraw() {

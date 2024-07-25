@@ -90,7 +90,7 @@ namespace Engine {
             wEvent.released = ev.type == SDL_MOUSEBUTTONUP;
             wEvent.pressed = ev.type == SDL_MOUSEBUTTONDOWN;
             wEvent.posX = (uint32_t)ev.button.x;
-            wEvent.posY = (uint32_t)ev.button.y;
+            wEvent.posY = height - (uint32_t)ev.button.y;
             return true;
         }
         return false;

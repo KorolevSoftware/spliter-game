@@ -26,6 +26,7 @@ namespace Engine {
 	};
 
 	struct GUINode {
+		uint32_t hash;
 		glm::vec2 size;
 		glm::vec2 position;
 		glm::vec4 color;
@@ -35,6 +36,7 @@ namespace Engine {
 		GUIPivot pivot;
 		GUIAdjustMod adjustMod;
 		std::list<GUINode> childs;
+		bool visable = true;
 	};
 
 	struct GUIVertex {
@@ -51,6 +53,12 @@ namespace Engine {
 		uint32_t textureID;
 	};
 
+	struct GUINodeScreen {
+		uint32_t hash;
+		glm::vec2 screen_p1;
+		glm::vec2 screen_p2;
+	};
+
 	struct GUIComposer final {
 		GUIComposer(uint32_t poolSize);
 		bool compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
@@ -58,8 +66,11 @@ namespace Engine {
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;
 		uint32_t getRenderBufSizeof();
+		uint32_t pickNode(glm::vec2 pos);
+		
 
 	private:
+		std::list<GUINodeScreen> nodesFromScreen;
 		std::vector<GUIVertex> vertexBuffer;
 		std::vector<GUIDrawCommand> commandBuffer;
 	};

@@ -3,16 +3,10 @@
 
 void createBox();
 
+glm::vec2 mouse_pos;
+bool pick = false;
 bool osEvents(Engine::Window& window) {
-    Engine::WindowEvent wEvent;
-
-    while (window.getEvent(wEvent)) { // event loop
-        if (wEvent.pressed) {
-            createBox();
-            spdlog::info("createBox");
-        }
-           
-    }
+   
     return true;
 }
 
@@ -94,6 +88,8 @@ int main(int argc, char* argv[]) {
     startButton.anchorY = false;
     startButton.pivot = Engine::GUIPivot::Centre;
     startButton.color = glm::vec4(1, 1, 1, 1);
+    startButton.hash = 1111;
+
 
     Engine::GUINode help;
     help.position = glm::vec2(69, 1100);
@@ -103,6 +99,7 @@ int main(int argc, char* argv[]) {
     help.anchorY = false;
     help.pivot = Engine::GUIPivot::Centre;
     help.color = glm::vec4(0, 0, 1, 1);
+    help.hash = 0;
 
     Engine::GUINode score;
     score.position = glm::vec2(528, 1100);
@@ -112,6 +109,7 @@ int main(int argc, char* argv[]) {
     score.anchorY = false;
     score.pivot = Engine::GUIPivot::Centre;
     score.color = glm::vec4(0, 0, 1, 1);
+    score.hash = 0;
 
     Engine::GUINode menu;
     menu.position = glm::vec2(300, 140);
@@ -121,6 +119,8 @@ int main(int argc, char* argv[]) {
     menu.anchorY = false;
     menu.pivot = Engine::GUIPivot::Centre;
     menu.color = glm::vec4(0, 0, 1, 1);
+    menu.visable = false;
+    menu.hash = 0;
 
     Engine::GUINode skins;
     skins.position = glm::vec2(-200, 0);
@@ -130,6 +130,7 @@ int main(int argc, char* argv[]) {
     skins.anchorY = false;
     skins.pivot = Engine::GUIPivot::Centre;
     skins.color = glm::vec4(0, 0, 1, 1);
+    skins.hash = 0;
 
     Engine::GUINode noads;
     noads.position = glm::vec2(-65, 0);
@@ -139,6 +140,7 @@ int main(int argc, char* argv[]) {
     noads.anchorY = false;
     noads.pivot = Engine::GUIPivot::Centre;
     noads.color = glm::vec4(0, 0, 1, 1);
+    noads.hash = 0;
 
     Engine::GUINode ratings;
     ratings.position = glm::vec2(70, 0);
@@ -148,6 +150,7 @@ int main(int argc, char* argv[]) {
     ratings.anchorY = false;
     ratings.pivot = Engine::GUIPivot::Centre;
     ratings.color = glm::vec4(0, 0, 1, 1);
+    ratings.hash = 0;
 
     Engine::GUINode settings;
     settings.position = glm::vec2(205, 0);
@@ -157,13 +160,16 @@ int main(int argc, char* argv[]) {
     settings.anchorY = false;
     settings.pivot = Engine::GUIPivot::Centre;
     settings.color = glm::vec4(0, 0, 1, 1);
+    settings.hash = 0;
 
     menu.childs.push_back(skins);
     menu.childs.push_back(noads);
     menu.childs.push_back(ratings);
     menu.childs.push_back(settings);
 
+
     Engine::GUINode testStrech;
+    testStrech.hash = 0;
     testStrech.position = glm::vec2(533, 603);
     testStrech.size = glm::vec2(200, 100);
     testStrech.adjustMod = Engine::GUIAdjustMod::Stretch;
@@ -171,7 +177,7 @@ int main(int argc, char* argv[]) {
     testStrech.anchorY = false;
     testStrech.pivot = Engine::GUIPivot::Centre;
     testStrech.color = glm::vec4(1, 1, 1, 1);
-
+    testStrech.hash = 0;
     Engine::GUIComposer composer(500);
 
     std::vector<uint8_t> tex_image;
@@ -193,9 +199,7 @@ int main(int argc, char* argv[]) {
     boxes.push_back(mainBox);
     createBox();
     main_graphics.setZoom(3);
-    while (true) { // engine loop
-        osEvents(main_window);
-        
+    while (true) { // engine loop        
         Engine::Box& select = boxes.back();
 
         if (select.position.x > 3.0f && moveByX) {
@@ -223,23 +227,44 @@ int main(int argc, char* argv[]) {
             main_graphics.setZoom(5);
         }
         y_offset_off = lerp(y_offset_off, y_offset, 0.016);
+
+        glm::vec2 screenResolution = glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight());
+        glm::vec2 vec2Zero(0);
+        composer.compose(help, localResolution, screenResolution, vec2Zero);
+        composer.compose(score, localResolution, screenResolution, vec2Zero);
+        composer.compose(menu, localResolution, screenResolution, vec2Zero);
+        composer.compose(startButton, localResolution, screenResolution, vec2Zero);
+        composer.compose(testStrech, localResolution, screenResolution, vec2Zero);
+
+        // INPUT
+        Engine::WindowEvent wEvent;
+        while (main_window.getEvent(wEvent)) { // event loop
+            if (wEvent.pressed) {
+               
+                mouse_pos.x = wEvent.posX;
+                mouse_pos.y = wEvent.posY;
+                spdlog::info("Click x: {} y:{}", wEvent.posX, wEvent.posY);
+                spdlog::info("createBox");
+                if (0 == composer.pickNode(mouse_pos)) {
+                    createBox();
+                }
+            }
+        }
+
+
         main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
         {
-            glm::vec2 screenResolution = glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight());
-            glm::vec2 vec2Zero(0);
+
             
             // Draw gui
-            composer.compose(help,        localResolution, screenResolution, vec2Zero);
-            composer.compose(score,       localResolution, screenResolution, vec2Zero);
-            composer.compose(menu,        localResolution, screenResolution, vec2Zero);
-            composer.compose(startButton, localResolution, screenResolution, vec2Zero);
-            composer.compose(testStrech,  localResolution, screenResolution, vec2Zero);
+            
 
             main_graphics.drawBoxes(boxes);
             main_graphics.setCameraOffsetY(y_offset_off);
             // TODO fix gui
             main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
-
+      
+            
             //mainBox.size = glm::vec3(2.0f);
         }
         main_graphics.endDraw();
