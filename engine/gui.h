@@ -30,7 +30,8 @@ namespace Engine {
 		glm::vec2 size;
 		glm::vec2 position;
 		glm::vec4 color;
-		glm::vec2 textureCoord;
+		glm::vec2 textureCoord1;
+		glm::vec2 textureCoord2;
 		bool anchorY;
 		bool anchorX;
 		GUIPivot pivot;

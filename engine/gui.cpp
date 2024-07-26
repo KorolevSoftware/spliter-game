@@ -119,13 +119,21 @@ namespace Engine {
             glm::vec3 position5(p2.x, p1.y, 0.5f);
             glm::vec3 position6(p1.x, p2.y, 0.5f);
 
-            vertexBuffer.emplace_back(position1, node.color, glm::vec2(0.0f, 1.0f));
-            vertexBuffer.emplace_back(position2, node.color, glm::vec2(1.0f));
-            vertexBuffer.emplace_back(position3, node.color, glm::vec2(1.0f, 0.0f));
+            //vertexBuffer.emplace_back(position1, node.color, glm::vec2(0.0f, 1.0f));
+            //vertexBuffer.emplace_back(position2, node.color, glm::vec2(1.0f));
+            //vertexBuffer.emplace_back(position3, node.color, glm::vec2(1.0f, 0.0f));
 
-            vertexBuffer.emplace_back(position4, node.color, glm::vec2(0));
-            vertexBuffer.emplace_back(position5, node.color, glm::vec2(0.0f, 1.0f));
-            vertexBuffer.emplace_back(position6, node.color, glm::vec2(1.0f, 0.0f));
+            //vertexBuffer.emplace_back(position4, node.color, glm::vec2(0));
+            //vertexBuffer.emplace_back(position5, node.color, glm::vec2(0.0f, 1.0f));
+            //vertexBuffer.emplace_back(position6, node.color, glm::vec2(1.0f, 0.0f));
+
+            vertexBuffer.emplace_back(position1, node.color, glm::vec2(node.textureCoord1.x, node.textureCoord2.y));
+            vertexBuffer.emplace_back(position2, node.color, node.textureCoord2);
+            vertexBuffer.emplace_back(position3, node.color, glm::vec2(node.textureCoord2.x, node.textureCoord1.y));
+            
+            vertexBuffer.emplace_back(position4, node.color, node.textureCoord1);
+            vertexBuffer.emplace_back(position5, node.color, glm::vec2(node.textureCoord1.x, node.textureCoord2.y));
+            vertexBuffer.emplace_back(position6, node.color, glm::vec2(node.textureCoord2.x, node.textureCoord1.y));
         }
         for (auto& child : node.childs) {
              compose(child, node.size, node.size * adjustScale, offset + (node.position) * adjustScale);

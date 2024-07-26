@@ -48,7 +48,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glad/include
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/glm
 	${CMAKE_CURRENT_SOURCE_DIR}/dependency/sokol
-	)
+)
 
 make_directory(${CMAKE_CURRENT_BINARY_DIR}/compile_shaders)
 

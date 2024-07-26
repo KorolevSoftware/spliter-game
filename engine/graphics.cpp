@@ -16,6 +16,7 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
+
 namespace {
     struct RenderPipline {
         sg_pipeline pip;
@@ -110,7 +111,7 @@ namespace {
     RenderPipline make_gui_pipline(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t depth) {
         RenderPipline rPipline{0};
         sg_buffer_desc buf{ 0 };
-        buf.data = { 0, sizeof(float) * 1000 };
+        buf.data = { 0, sizeof(float) * 4000 };
         buf.label = "triangle-vertices";
         buf.usage = SG_USAGE_DYNAMIC;
         state.guiBuffer = sg_make_buffer(buf);
@@ -125,6 +126,11 @@ namespace {
         desc.label = "triangle-pipeline";
         desc.cull_mode = SG_CULLMODE_BACK;
         desc.depth.write_enabled = false;
+        desc.colors[0].blend.enabled = true;
+        desc.colors[0].blend.src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA;
+        desc.colors[0].blend.dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+                
+                
 
         rPipline.pip = sg_make_pipeline(desc);
 
@@ -153,6 +159,7 @@ namespace {
         glm::mat4 Model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
         return Projection * View * Model;
     }
+
 } // namespace
 
 
@@ -191,6 +198,7 @@ namespace Engine {
         state.pass_action = pass;
 
         gamePipline = make_game_pipline();
+
 	}
 
     void Graphics::beginDraw(uint32_t width, uint32_t height) {

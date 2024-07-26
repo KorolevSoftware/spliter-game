@@ -1,6 +1,7 @@
 #include "engine/window.h"
 #include "engine/graphics.h"
-
+#include <SDL_ttf.h>
+#include <SDL_surface.h>
 void createBox();
 
 glm::vec2 mouse_pos;
@@ -71,6 +72,119 @@ void createBox() {
 float lerp(float a, float b, float weight) {
     // Ключевой момент: сумма коэффициентов `weight` и `1 - weight` равна 1.
     return a * (1 - weight) + b * weight;
+}
+
+static SDL_Rect glyphs[255];
+
+
+SDL_Surface* initFont(char* filename) {
+    TTF_Init();
+    SDL_Surface* surface, * text;
+    SDL_Rect dest;
+    int i;
+    char c[2];
+    SDL_Rect* g;
+
+    int texture_size = 512;
+
+    auto font = TTF_OpenFont(filename, 64);
+
+    surface = SDL_CreateRGBSurface(0, texture_size, texture_size, 32, 0, 0, 0, 0xff);
+
+    SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGBA(surface->format, 0, 0, 0, 0));
+
+    dest.x = dest.y = 0;
+    SDL_Color white{ 255, 255, 255, 255 };
+
+    for (i = ' '; i <= 'z'; i++) {
+        c[0] = i;
+        c[1] = 0;
+
+        text = TTF_RenderUTF8_Blended(font, c, white);
+
+        TTF_SizeText(font, c, &dest.w, &dest.h);
+
+        if (dest.x + dest.w >= texture_size) {
+            dest.x = 0;
+
+            dest.y += dest.h + 1;
+
+            if (dest.y + dest.h >= texture_size) {
+                SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_CRITICAL, "Out of glyph space in %dx%d font atlas texture map.", texture_size, texture_size);
+                exit(1);
+            }
+        }
+
+        SDL_BlitSurface(text, NULL, surface, &dest);
+
+        g = &glyphs[i];
+
+        g->x = dest.x;
+        g->y = dest.y;
+        g->w = dest.w;
+        g->h = dest.h;
+
+        SDL_FreeSurface(text);
+
+        dest.x += dest.w;
+    }
+
+    return surface;
+}
+
+Engine::GUINode composeText(std::string text) {
+    Engine::GUINode root;
+    root.position = glm::vec2(-400, 250);
+    root.size = glm::vec2(512, 512);
+    root.adjustMod = Engine::GUIAdjustMod::Fit;
+    root.anchorX = false;
+    root.anchorY = false;
+    root.pivot = Engine::GUIPivot::Centre;
+    root.color = glm::vec4(1, 1, 1, 1);
+    root.hash = 1111;
+    root.visable = false;
+    glm::vec2 text_pos(0, 0);
+    int text_offset = 0;
+    for (auto& ch : text) {
+        SDL_Rect r_ch = glyphs[ch];
+
+        Engine::GUINode n_ch;
+        n_ch.textureCoord1 = glm::vec2(r_ch.x/512.0f, r_ch.y / 512.0f);
+        n_ch.textureCoord2 = glm::vec2(n_ch.textureCoord1.x + r_ch.w / 512.0f, n_ch.textureCoord1.y + r_ch.h / 512.0f);
+        std::swap(n_ch.textureCoord1, n_ch.textureCoord2);
+        n_ch.textureCoord1.y = 1.0f - n_ch.textureCoord1.y;
+        n_ch.textureCoord2.y = 1.0f - n_ch.textureCoord2.y;
+        std::swap(n_ch.textureCoord1.x, n_ch.textureCoord2.x);
+
+        n_ch.position = glm::vec2(text_offset + text_pos.x, text_pos.y);
+        n_ch.size = glm::vec2(r_ch.w, r_ch.h);
+        n_ch.adjustMod = Engine::GUIAdjustMod::Fit;
+        n_ch.anchorX = false;
+        n_ch.anchorY = false;
+        n_ch.pivot = Engine::GUIPivot::Centre;
+        n_ch.color = glm::vec4(1, 1, 1, 1);
+        n_ch.hash = 0;
+   
+        root.childs.push_back(n_ch);
+        text_offset += r_ch.w+1;
+    }
+    return root;
+}
+
+SDL_Surface* flip_vertical(SDL_Surface* sfc) {
+    SDL_Surface* result = SDL_CreateRGBSurface(sfc->flags, sfc->w, sfc->h,
+        sfc->format->BytesPerPixel * 8, sfc->format->Rmask, sfc->format->Gmask,
+        sfc->format->Bmask, sfc->format->Amask);
+    const auto pitch = sfc->pitch;
+    const auto pxlength = pitch * (sfc->h - 1);
+    auto pixels = static_cast<unsigned char*>(sfc->pixels) + pxlength;
+    auto rpixels = static_cast<unsigned char*>(result->pixels);
+    for (auto line = 0; line < sfc->h; ++line) {
+        memcpy(rpixels, pixels, pitch);
+        pixels -= pitch;
+        rpixels += pitch;
+    }
+    return result;
 }
 
 int main(int argc, char* argv[]) {
@@ -178,12 +292,29 @@ int main(int argc, char* argv[]) {
     testStrech.pivot = Engine::GUIPivot::Centre;
     testStrech.color = glm::vec4(1, 1, 1, 1);
     testStrech.hash = 0;
-    Engine::GUIComposer composer(500);
+
+
+
+    Engine::GUIComposer composer(4000);
 
     std::vector<uint8_t> tex_image;
     uint8_t depth;
     uint32_t width, height;
-    main_window.loadImage("cat.png", tex_image, depth, width, height);
+
+    SDL_Surface* img = initFont("arial.ttf");
+    img = flip_vertical(img);
+    tex_image.reserve(img->h* img->pitch);
+    std::copy(
+        reinterpret_cast<uint8_t*>(img->pixels),
+        reinterpret_cast<uint8_t*>(img->pixels) + img->h * img->pitch,
+        std::back_inserter(tex_image)
+    );
+    depth = img->pitch / img->w;
+    width = img->w;
+    height = img->h;
+
+    
+    //main_window.loadImage("cat.png", tex_image, depth, width, height);
     main_graphics.setImage(tex_image, width, height, depth);
 
     Engine::Box mainBox;
@@ -199,6 +330,12 @@ int main(int argc, char* argv[]) {
     boxes.push_back(mainBox);
     createBox();
     main_graphics.setZoom(3);
+
+
+
+  
+    Engine::GUINode text = composeText("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
     while (true) { // engine loop        
         Engine::Box& select = boxes.back();
 
@@ -230,11 +367,12 @@ int main(int argc, char* argv[]) {
 
         glm::vec2 screenResolution = glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight());
         glm::vec2 vec2Zero(0);
-        composer.compose(help, localResolution, screenResolution, vec2Zero);
+        composer.compose(text, localResolution, screenResolution, vec2Zero);
+        /*composer.compose(help, localResolution, screenResolution, vec2Zero);
         composer.compose(score, localResolution, screenResolution, vec2Zero);
         composer.compose(menu, localResolution, screenResolution, vec2Zero);
         composer.compose(startButton, localResolution, screenResolution, vec2Zero);
-        composer.compose(testStrech, localResolution, screenResolution, vec2Zero);
+        composer.compose(testStrech, localResolution, screenResolution, vec2Zero);*/
 
         // INPUT
         Engine::WindowEvent wEvent;
