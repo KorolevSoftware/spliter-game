@@ -134,7 +134,7 @@ SDL_Surface* initFont(char* filename) {
 
 Engine::GUINode composeText(std::string text) {
     Engine::GUINode root;
-    root.position = glm::vec2(-400, 250);
+    root.position = glm::vec2(0, 250);
     root.size = glm::vec2(512, 512);
     root.adjustMod = Engine::GUIAdjustMod::Fit;
     root.anchorX = false;
@@ -142,7 +142,7 @@ Engine::GUINode composeText(std::string text) {
     root.pivot = Engine::GUIPivot::Centre;
     root.color = glm::vec4(1, 1, 1, 1);
     root.hash = 1111;
-    root.visable = false;
+    root.visable = true;
     glm::vec2 text_pos(0, 0);
     int text_offset = 0;
     for (auto& ch : text) {
@@ -161,12 +161,12 @@ Engine::GUINode composeText(std::string text) {
         n_ch.adjustMod = Engine::GUIAdjustMod::Fit;
         n_ch.anchorX = false;
         n_ch.anchorY = false;
-        n_ch.pivot = Engine::GUIPivot::Centre;
+        n_ch.pivot = Engine::GUIPivot::West;
         n_ch.color = glm::vec4(1, 1, 1, 1);
         n_ch.hash = 0;
    
         root.childs.push_back(n_ch);
-        text_offset += r_ch.w+1;
+        text_offset += r_ch.w;
     }
     return root;
 }
@@ -334,7 +334,7 @@ int main(int argc, char* argv[]) {
 
 
   
-    Engine::GUINode text = composeText("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+    Engine::GUINode text = composeText("Hello world");
 
     while (true) { // engine loop        
         Engine::Box& select = boxes.back();

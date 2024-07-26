@@ -71,7 +71,7 @@ namespace Engine {
 
             case GUIPivot::NorthEast:
                 p1 = screenPosition;
-                p2 = screenPosition - node.size;
+                p2 = screenPosition - node.size;// TODO fix 
                 break;
 
             case GUIPivot::East:
@@ -80,28 +80,28 @@ namespace Engine {
                 break;
 
             case GUIPivot::SouthEast:
-                p1 = screenPosition + glm::vec2(0, node.size.y);
-                p2 = screenPosition - glm::vec2(node.size.x, 0);
+                p1 = screenPosition + glm::vec2(0, node.size.y);// TODO fix 
+                p2 = screenPosition - glm::vec2(node.size.x, 0);// TODO fix 
                 break;
 
             case GUIPivot::South:
-                p1 = screenPosition + glm::vec2(drawDim.x, node.size.y);
+                p1 = screenPosition + glm::vec2(drawDim.x, node.size.y);// TODO fix 
                 p2 = screenPosition + glm::vec2(-drawDim.x, 0);
                 break;
 
             case GUIPivot::SouthWest:
-                p1 = screenPosition + glm::vec2(node.size.x, node.size.y);
+                p1 = screenPosition + glm::vec2(node.size.x, node.size.y); // TODO fix 
                 p2 = screenPosition;
                 break;
 
             case GUIPivot::West:
-                p1 = screenPosition + glm::vec2(node.size.x, drawDim.y);
+                p1 = screenPosition + glm::vec2(drawDim.x*2, drawDim.y);
                 p2 = screenPosition + glm::vec2(0, -drawDim.y);
                 break;
 
             case GUIPivot::NorthWest:
-                p1 = screenPosition + glm::vec2(node.size.x, 0);
-                p2 = screenPosition + glm::vec2(0, -node.size.y);
+                p1 = screenPosition + glm::vec2(node.size.x, 0);// TODO fix 
+                p2 = screenPosition + glm::vec2(0, -node.size.y);// TODO fix 
                 break;
             }
 
