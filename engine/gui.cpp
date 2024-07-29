@@ -136,7 +136,7 @@ namespace Engine {
             vertexBuffer.emplace_back(position6, node.color, glm::vec2(node.textureCoord2.x, node.textureCoord1.y));
         }
         for (auto& child : node.childs) {
-             compose(child, node.size, node.size * adjustScale, offset + (node.position) * adjustScale);
+             compose(child, node.size, node.size * adjustScale, screenPosition);
         }
         return true;
 	}
