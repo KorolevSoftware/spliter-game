@@ -63,12 +63,12 @@ namespace Engine {
 	struct GUIComposer final {
 		GUIComposer(uint32_t poolSize);
 		bool compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
+		bool composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset);
 		void clearVertexBuffer();
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;
 		uint32_t getRenderBufSizeof();
 		uint32_t pickNode(glm::vec2 pos);
-		
 
 	private:
 		std::list<GUINodeScreen> nodesFromScreen;

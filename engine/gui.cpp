@@ -8,37 +8,51 @@ namespace Engine {
         vertexBuffer.reserve(poolSize);
     }
 
-	bool GUIComposer::compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
-        glm::vec2 aspectRation = actualResolution / localResolution;
-
-        glm::vec2 adjustScale;
+    glm::vec2 calculateAdjust(const glm::vec2& aspectRation, GUIAdjustMod adjust) {
         float temp;
-        switch (node.adjustMod) {
+        switch (adjust) {
         case GUIAdjustMod::Fit:
             temp = std::min(aspectRation.x, aspectRation.y);
-            adjustScale = glm::vec2(temp, temp);
-            break;
+            return glm::vec2(temp);
 
         case GUIAdjustMod::Zoom:
             temp = std::max(aspectRation.x, aspectRation.y);
-            adjustScale = glm::vec2(temp, temp);
-            break;
+            return glm::vec2(temp);
 
         case GUIAdjustMod::Stretch:
-            adjustScale = aspectRation;
-            break;
-        } // case GUIAdjustMod::Stretch: skip adjustScale correct
+            return aspectRation;
+        } 
+    }
 
+    bool GUIComposer::compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
+        glm::vec2 aspectRation = actualResolution / localResolution;
+        glm::vec2 adjustScale = calculateAdjust(aspectRation, node.adjustMod);
+
+        if (node.anchorX) {
+            adjustScale.x = aspectRation.x;
+        }
+
+        if (node.anchorY) {
+            adjustScale.y = aspectRation.y;
+        }
+
+        glm::vec2 offset = (actualResolution - localResolution * adjustScale) * 0.5f; // left offset (is fit offset == 0)
+        return composeScreen(node, aspectRation, parentOffset + offset);
+    }
+
+    bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset) {
+        glm::vec2 adjustScale = calculateAdjust(aspectRation, node.adjustMod);
+       
         glm::vec2 offsetAdjustScale = adjustScale;
         if (node.anchorX) {
             offsetAdjustScale.x = aspectRation.x;
         }
 
         if (node.anchorY) {
-            offsetAdjustScale.y = aspectRation.y;
+            offsetAdjustScale.y = aspectRation.y;   
         }
 
-        glm::vec2 offset = (actualResolution - localResolution * offsetAdjustScale) * 0.5f;
+        glm::vec2 screenPosition = node.position * offsetAdjustScale + parentOffset;
 
         if (node.visable) {
             glm::vec2 p1;
@@ -54,10 +68,8 @@ namespace Engine {
             //|                      |
             //p2----------------------
 
-            glm::vec2 screenPosition = node.position * offsetAdjustScale + offset + parentOffset;
             // gen primitive
-
-            glm::vec2 drawDim = node.size / 2.0f * adjustScale;
+            glm::vec2 drawDim = node.size * 0.5f * adjustScale;
             switch (node.pivot) {
             case GUIPivot::Centre:
                 p1 = screenPosition + drawDim;
@@ -119,14 +131,6 @@ namespace Engine {
             glm::vec3 position5(p2.x, p1.y, 0.5f);
             glm::vec3 position6(p1.x, p2.y, 0.5f);
 
-            //vertexBuffer.emplace_back(position1, node.color, glm::vec2(0.0f, 1.0f));
-            //vertexBuffer.emplace_back(position2, node.color, glm::vec2(1.0f));
-            //vertexBuffer.emplace_back(position3, node.color, glm::vec2(1.0f, 0.0f));
-
-            //vertexBuffer.emplace_back(position4, node.color, glm::vec2(0));
-            //vertexBuffer.emplace_back(position5, node.color, glm::vec2(0.0f, 1.0f));
-            //vertexBuffer.emplace_back(position6, node.color, glm::vec2(1.0f, 0.0f));
-
             vertexBuffer.emplace_back(position1, node.color, glm::vec2(node.textureCoord1.x, node.textureCoord2.y));
             vertexBuffer.emplace_back(position2, node.color, node.textureCoord2);
             vertexBuffer.emplace_back(position3, node.color, glm::vec2(node.textureCoord2.x, node.textureCoord1.y));
@@ -136,10 +140,11 @@ namespace Engine {
             vertexBuffer.emplace_back(position6, node.color, glm::vec2(node.textureCoord2.x, node.textureCoord1.y));
         }
         for (auto& child : node.childs) {
-             compose(child, node.size, node.size * adjustScale, screenPosition);
+            composeScreen(child, adjustScale, screenPosition);
         }
         return true;
 	}
+
 
     void GUIComposer::clearVertexBuffer() {
         vertexBuffer.clear();
