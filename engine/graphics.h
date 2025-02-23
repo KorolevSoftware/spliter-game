@@ -16,7 +16,7 @@ namespace Engine {
 		};
 		using GPUBuffer = uint32_t;
 
-		void initialize();
+		void initialize(void* GPUContext);
 		void beginDraw(uint32_t width, uint32_t height);
 		void endDraw();
 		void drawBoxes(const std::vector<Box>& boxes);

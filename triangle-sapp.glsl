@@ -13,7 +13,7 @@ in vec2 texCoords0;
 out vec4 color;
 out vec2 texCoords;
 
-uniform vs_params {
+layout(binding=0) uniform vs_params {
     mat4 mvp;
 };
 
@@ -29,20 +29,20 @@ in vec4 color;
 in vec2 texCoords;
 out vec4 frag_color;
 
-uniform texture2D tex;
-uniform sampler smp;
+layout(binding=0) uniform texture2D tex;
+layout(binding=0) uniform sampler smp;
 
 void main() {
     frag_color = texture(sampler2D(tex, smp), texCoords) * color;
 }
 @end
 
-@program triangle vs fs
+@program gui vs fs
 
 
 
 @vs vs_cube
-uniform vs_params1 {
+layout(binding=0) uniform vs_params1 {
     mat4 mvp;
     vec3 box_position;
     vec3 box_size;

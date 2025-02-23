@@ -1,7 +1,9 @@
 #include "engine/window.h"
 #include "engine/graphics.h"
-#include <SDL_ttf.h>
-#include <SDL_surface.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#define SDL_MAIN_HANDLED true
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
 void createBox();
 
 glm::vec2 mouse_pos;
@@ -77,7 +79,7 @@ float lerp(float a, float b, float weight) {
 static SDL_Rect glyphs[255];
 
 
-SDL_Surface* initFont(char* filename) {
+SDL_Surface* initFont(const char* filename) {
     TTF_Init();
     SDL_Surface* surface, * text;
     SDL_Rect dest;
@@ -88,10 +90,10 @@ SDL_Surface* initFont(char* filename) {
     int texture_size = 512;
 
     auto font = TTF_OpenFont(filename, 64);
+    
+    surface = SDL_CreateSurface(texture_size, texture_size, SDL_PIXELFORMAT_BGRA32);
 
-    surface = SDL_CreateRGBSurface(0, texture_size, texture_size, 32, 0, 0, 0, 0xff);
-
-    SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGBA(surface->format, 0, 0, 0, 0));
+    SDL_SetSurfaceColorKey(surface, true, SDL_MapSurfaceRGBA(surface, 0, 0, 0, 0));
 
     dest.x = dest.y = 0;
     SDL_Color white{ 255, 255, 255, 255 };
@@ -100,9 +102,9 @@ SDL_Surface* initFont(char* filename) {
         c[0] = i;
         c[1] = 0;
 
-        text = TTF_RenderUTF8_Blended(font, c, white);
+        text = TTF_RenderText_Blended(font, c, 1, white);
 
-        TTF_SizeText(font, c, &dest.w, &dest.h);
+        TTF_GetStringSize(font, c,1, &dest.w, &dest.h);
 
         if (dest.x + dest.w >= texture_size) {
             dest.x = 0;
@@ -124,7 +126,7 @@ SDL_Surface* initFont(char* filename) {
         g->w = dest.w;
         g->h = dest.h;
 
-        SDL_FreeSurface(text);
+        SDL_DestroySurface(text);
 
         dest.x += dest.w;
     }
@@ -171,28 +173,13 @@ Engine::GUINode composeText(std::string text) {
     return root;
 }
 
-SDL_Surface* flip_vertical(SDL_Surface* sfc) {
-    SDL_Surface* result = SDL_CreateRGBSurface(sfc->flags, sfc->w, sfc->h,
-        sfc->format->BytesPerPixel * 8, sfc->format->Rmask, sfc->format->Gmask,
-        sfc->format->Bmask, sfc->format->Amask);
-    const auto pitch = sfc->pitch;
-    const auto pxlength = pitch * (sfc->h - 1);
-    auto pixels = static_cast<unsigned char*>(sfc->pixels) + pxlength;
-    auto rpixels = static_cast<unsigned char*>(result->pixels);
-    for (auto line = 0; line < sfc->h; ++line) {
-        memcpy(rpixels, pixels, pitch);
-        pixels -= pitch;
-        rpixels += pitch;
-    }
-    return result;
-}
 
 int main(int argc, char* argv[]) {
     Engine::Window main_window;
     main_window.initialize("Splitter", 600, 1200);
 
     Engine::Graphics main_graphics;
-    main_graphics.initialize();
+    main_graphics.initialize(main_window.GPUContext);
 
     Engine::GUINode startButton;
     startButton.position = glm::vec2(300, 834);
@@ -302,7 +289,7 @@ int main(int argc, char* argv[]) {
     uint32_t width, height;
 
     SDL_Surface* img = initFont("arial.ttf");
-    img = flip_vertical(img);
+    SDL_FlipSurface(img, SDL_FlipMode::SDL_FLIP_VERTICAL);
     tex_image.reserve(img->h* img->pitch);
     std::copy(
         reinterpret_cast<uint8_t*>(img->pixels),

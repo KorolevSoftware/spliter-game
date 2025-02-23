@@ -1,17 +1,24 @@
 #include "window.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 //#include <SDL_opengles2.h>
 #include <iostream>
 #include <glad/glad.h>
 #include <spdlog/spdlog.h>
-#include <SDL_image.h>
+#include <SDL3_image/SDL_image.h>
+
+
+namespace {
+    // void 
+}
 
 namespace Engine {
     WindowStatus Window::initialize(std::string_view name, uint32_t width, uint32_t height) {
         this->width = width;
         this->height = height;
+
+
+        #ifdef window10 // windows opengl
         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-        IMG_Init(IMG_INIT_PNG);
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -21,10 +28,7 @@ namespace Engine {
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
         //Create a window
         window = SDL_CreateWindow(name.data(),
-            SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED,
-            width, height,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+            width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
         if (window == nullptr) {
             spdlog::critical("SDL_CreateWindow error create window");
@@ -32,7 +36,7 @@ namespace Engine {
         }
 
         spdlog::info("Created SDL Window: Success");
-        GLContext = SDL_GL_CreateContext(window);
+        GPUContext = SDL_GL_CreateContext(window);
 
         if (GLContext == nullptr) {
             spdlog::critical("SDL_GL_CreateContext error create opengl surface {0}", SDL_GetError());
@@ -42,6 +46,13 @@ namespace Engine {
         spdlog::info("Created SDL GL context: Success");
 
         gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
+        #endif
+
+
+        window = SDL_CreateWindow(name.data(),
+        width, height, SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
+
+        GPUContext = SDL_Metal_CreateView(window);
 
         return WindowStatus::Success;
     }
@@ -67,7 +78,7 @@ namespace Engine {
         depth = img->pitch / img->w;
         width = img->w;
         height = img->h;
-        SDL_FreeSurface(img);
+        SDL_DestroySurface(img);
 
     }
 
@@ -79,16 +90,13 @@ namespace Engine {
         SDL_Event ev;
 
         if (SDL_PollEvent(&ev)) {
-            if (ev.type == SDL_WINDOWEVENT) {
-                if (ev.window.event == SDL_WINDOWEVENT_RESIZED) {
+            if (ev.type == SDL_EVENT_WINDOW_RESIZED) {
                     width = ev.window.data1;
                     height = ev.window.data2;
                     spdlog::info("Screen resize to: {0}x{1}", width, height);
-                }
-                
             }
-            wEvent.released = ev.type == SDL_MOUSEBUTTONUP;
-            wEvent.pressed = ev.type == SDL_MOUSEBUTTONDOWN;
+            wEvent.released = ev.type == SDL_EVENT_MOUSE_BUTTON_UP;
+            wEvent.pressed = ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
             wEvent.posX = (uint32_t)ev.button.x;
             wEvent.posY = height - (uint32_t)ev.button.y;
             return true;
