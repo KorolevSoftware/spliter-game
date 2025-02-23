@@ -82,7 +82,7 @@ static SDL_Rect glyphs[255];
 SDL_Surface* initFont(const char* filename) {
     TTF_Init();
     SDL_Surface* surface, * text;
-    SDL_Rect dest;
+    SDL_Rect dest {0};
     int i;
     char c[2];
     SDL_Rect* g;
@@ -95,7 +95,6 @@ SDL_Surface* initFont(const char* filename) {
 
     SDL_SetSurfaceColorKey(surface, true, SDL_MapSurfaceRGBA(surface, 0, 0, 0, 0));
 
-    dest.x = dest.y = 0;
     SDL_Color white{ 255, 255, 255, 255 };
 
     for (i = ' '; i <= 'z'; i++) {

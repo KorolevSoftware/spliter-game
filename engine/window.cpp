@@ -51,8 +51,13 @@ namespace Engine {
 
         window = SDL_CreateWindow(name.data(),
         width, height, SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
-
-        GPUContext = SDL_Metal_CreateView(window);
+        SDL_Renderer *renderer = SDL_CreateRenderer(window, "metal");
+        for(int i = 0; i < SDL_GetNumRenderDrivers(); i++) {
+            spdlog::info(SDL_GetRenderDriver(i));
+        }
+        
+        GPUContext = SDL_GetRenderMetalLayer(renderer);
+        
 
         return WindowStatus::Success;
     }
