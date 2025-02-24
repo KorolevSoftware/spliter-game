@@ -6,8 +6,6 @@
 #include <glm/ext/matrix_clip_space.hpp> // glm::perspective
 #include "glm/gtc/matrix_transform.hpp"
 #include <glad/glad.h>
-#import <Metal/Metal.h>
-#import <MetalKit/MetalKit.h>
 
 #define SOKOL_IMPL
 #define SOKOL_METAL
@@ -190,8 +188,8 @@ namespace Engine {
     void Graphics::initialize(void* GPUContext) {
         origin = glm::vec3(0);
         sg_desc ff { 0 };
-        const CAMetalLayer *swapchain = reinterpret_cast<CAMetalLayer *>(GPUContext);
-        ff.environment.metal.device = swapchain.device;
+        const CAMetalLayer *mLayer = reinterpret_cast<CAMetalLayer *>(GPUContext);
+        ff.environment.metal.device = mLayer.device;
         sg_setup(ff);
         // a pass action to clear framebuffer to black
         sg_pass_action pass;
@@ -203,6 +201,7 @@ namespace Engine {
         state.pass_action = pass;
 
         gamePipline = make_game_pipline();
+        state.swapchain.metal.color_format = SG_PIXELFORMAT_BGRA8;
 
 	}
 

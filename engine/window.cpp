@@ -1,23 +1,24 @@
 #include "window.h"
 #include <SDL3/SDL.h>
-//#include <SDL_opengles2.h>
+// #include <SDL_opengles2.h>
 #include <iostream>
 #include <glad/glad.h>
 #include <spdlog/spdlog.h>
 #include <SDL3_image/SDL_image.h>
 
-
-namespace {
-    // void 
+namespace
+{
+    // void
 }
 
-namespace Engine {
-    WindowStatus Window::initialize(std::string_view name, uint32_t width, uint32_t height) {
+namespace Engine
+{
+    WindowStatus Window::initialize(std::string_view name, uint32_t width, uint32_t height)
+    {
         this->width = width;
         this->height = height;
 
-
-        #ifdef window10 // windows opengl
+#ifdef window10 // windows opengl
         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
@@ -26,11 +27,12 @@ namespace Engine {
         SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-        //Create a window
+        // Create a window
         window = SDL_CreateWindow(name.data(),
-            width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+                                  width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
-        if (window == nullptr) {
+        if (window == nullptr)
+        {
             spdlog::critical("SDL_CreateWindow error create window");
             return WindowStatus::Failure;
         }
@@ -38,7 +40,8 @@ namespace Engine {
         spdlog::info("Created SDL Window: Success");
         GPUContext = SDL_GL_CreateContext(window);
 
-        if (GLContext == nullptr) {
+        if (GLContext == nullptr)
+        {
             spdlog::critical("SDL_GL_CreateContext error create opengl surface {0}", SDL_GetError());
             return WindowStatus::Failure;
         }
@@ -46,59 +49,70 @@ namespace Engine {
         spdlog::info("Created SDL GL context: Success");
 
         gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
-        #endif
-
+#endif
 
         window = SDL_CreateWindow(name.data(),
-        width, height, SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
+                                  width, height, SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
         SDL_Renderer *renderer = SDL_CreateRenderer(window, "metal");
-        for(int i = 0; i < SDL_GetNumRenderDrivers(); i++) {
+        for (int i = 0; i < SDL_GetNumRenderDrivers(); i++)
+        {
             spdlog::info(SDL_GetRenderDriver(i));
         }
-        
-        GPUContext = SDL_GetRenderMetalLayer(renderer);
-        
+
+// GPUContext = SDL_GetRenderMetalLayer(renderer);
+#ifdef SDL_VIDEO_DRIVER_COCOA
+        NSView *view = SDL_Metal_CreateView(window);
+#endif
+
+#ifdef SDL_VIDEO_DRIVER_UIKIT
+        UIView *view = SDL_Metal_CreateView(window);
+#endif
 
         return WindowStatus::Success;
     }
 
-    WindowStatus Window::finalize() {
-        if (window == nullptr) {
+    WindowStatus Window::finalize()
+    {
+        if (window == nullptr)
+        {
             return WindowStatus::Failure;
         }
         spdlog::info("Destroy SDL Window: Success");
         SDL_DestroyWindow(window); // Free up window
-        SDL_Quit();  // Shutdown SDL
+        SDL_Quit();                // Shutdown SDL
         return WindowStatus::Success;
     }
 
-    void Window::loadImage(std::filesystem::path path, std::vector<uint8_t>& pixels, uint8_t& depth, uint32_t& width, uint32_t& height) {
-        SDL_Surface* img = IMG_Load(path.string().c_str());
+    void Window::loadImage(std::filesystem::path path, std::vector<uint8_t> &pixels, uint8_t &depth, uint32_t &width, uint32_t &height)
+    {
+        SDL_Surface *img = IMG_Load(path.string().c_str());
         pixels.reserve(img->h * img->pitch);
         std::copy(
-            reinterpret_cast<uint8_t*>(img->pixels),
-            reinterpret_cast<uint8_t*>(img->pixels) + img->h * img->pitch,
-            std::back_inserter(pixels)
-        );
+            reinterpret_cast<uint8_t *>(img->pixels),
+            reinterpret_cast<uint8_t *>(img->pixels) + img->h * img->pitch,
+            std::back_inserter(pixels));
         depth = img->pitch / img->w;
         width = img->w;
         height = img->h;
         SDL_DestroySurface(img);
-
     }
 
-    void Window::present() {        
+    void Window::present()
+    {
         SDL_GL_SwapWindow(window);
     }
-    
-    bool Window::getEvent(WindowEvent& wEvent) {
+
+    bool Window::getEvent(WindowEvent &wEvent)
+    {
         SDL_Event ev;
 
-        if (SDL_PollEvent(&ev)) {
-            if (ev.type == SDL_EVENT_WINDOW_RESIZED) {
-                    width = ev.window.data1;
-                    height = ev.window.data2;
-                    spdlog::info("Screen resize to: {0}x{1}", width, height);
+        if (SDL_PollEvent(&ev))
+        {
+            if (ev.type == SDL_EVENT_WINDOW_RESIZED)
+            {
+                width = ev.window.data1;
+                height = ev.window.data2;
+                spdlog::info("Screen resize to: {0}x{1}", width, height);
             }
             wEvent.released = ev.type == SDL_EVENT_MOUSE_BUTTON_UP;
             wEvent.pressed = ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
@@ -109,11 +123,13 @@ namespace Engine {
         return false;
     }
 
-    uint32_t Window::getWidth() {
+    uint32_t Window::getWidth()
+    {
         return width;
     }
 
-    uint32_t Window::getHeight() {
+    uint32_t Window::getHeight()
+    {
         return height;
     }
 }
