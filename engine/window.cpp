@@ -6,9 +6,12 @@
 #include <spdlog/spdlog.h>
 #include <SDL3_image/SDL_image.h>
 
+
+
 namespace
 {
     // void
+//SDL_Renderer *renderer;
 }
 
 namespace Engine
@@ -52,22 +55,14 @@ namespace Engine
 #endif
 
         window = SDL_CreateWindow(name.data(),
-                                  width, height, SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE);
-        SDL_Renderer *renderer = SDL_CreateRenderer(window, "metal");
-        for (int i = 0; i < SDL_GetNumRenderDrivers(); i++)
-        {
-            spdlog::info(SDL_GetRenderDriver(i));
-        }
-
-// GPUContext = SDL_GetRenderMetalLayer(renderer);
-#ifdef SDL_VIDEO_DRIVER_COCOA
-        NSView *view = SDL_Metal_CreateView(window);
+                                  width, height, 0);
+        
+#if defined(__APPLE__) && defined(__MACH__)
+#if TARGET_OS_MAC == 1
+        GPUContext = SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, nullptr);
 #endif
-
-#ifdef SDL_VIDEO_DRIVER_UIKIT
-        UIView *view = SDL_Metal_CreateView(window);
 #endif
-
+        
         return WindowStatus::Success;
     }
 
@@ -99,7 +94,8 @@ namespace Engine
 
     void Window::present()
     {
-        SDL_GL_SwapWindow(window);
+//        SDL_RenderPresent(renderer);
+//        SDL_GL_SwapWindow(window);
     }
 
     bool Window::getEvent(WindowEvent &wEvent)

@@ -123,13 +123,13 @@ namespace Engine {
             snode.screen_p2 = p2;
             nodesFromScreen.push_back(snode);
 
-            glm::vec3 position1(p2.x, p1.y, 0.5f);
-            glm::vec3 position2(p1.x, p1.y, 0.5f);
-            glm::vec3 position3(p1.x, p2.y, 0.5f);
+            glm::vec3 position1(p2.x, p1.y, 0.0f);
+            glm::vec3 position2(p1.x, p1.y, 0.0f);
+            glm::vec3 position3(p1.x, p2.y, 0.0f);
 
-            glm::vec3 position4(p2.x, p2.y, 0.5f);
-            glm::vec3 position5(p2.x, p1.y, 0.5f);
-            glm::vec3 position6(p1.x, p2.y, 0.5f);
+            glm::vec3 position4(p2.x, p2.y, 0.0f);
+            glm::vec3 position5(p2.x, p1.y, 0.0f);
+            glm::vec3 position6(p1.x, p2.y, 0.0f);
 
             vertexBuffer.emplace_back(position1, node.color, glm::vec2(node.textureCoord1.x, node.textureCoord2.y));
             vertexBuffer.emplace_back(position2, node.color, node.textureCoord2);

@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     main_window.initialize("Splitter", 600, 1200);
 
     Engine::Graphics main_graphics;
-    main_graphics.initialize(main_window.GPUContext);
+    main_graphics.initialize(main_window.GPUContext, main_window.getWidth(), main_window.getHeight());
 
     Engine::GUINode startButton;
     startButton.position = glm::vec2(300, 834);
@@ -369,8 +369,9 @@ int main(int argc, char* argv[]) {
                 mouse_pos.y = wEvent.posY;
                 spdlog::info("Click x: {} y:{}", wEvent.posX, wEvent.posY);
                 spdlog::info("createBox");
+                createBox();
                 if (0 == composer.pickNode(mouse_pos)) {
-                    createBox();
+                    
                 }
             }
         }
@@ -394,6 +395,7 @@ int main(int argc, char* argv[]) {
         main_graphics.endDraw();
         main_window.present();
         composer.clearVertexBuffer();
+//        sleep(16);
     }
     return 0;
 }

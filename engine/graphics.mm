@@ -1,4 +1,6 @@
 #include "graphics.h"
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_CONFIG_CLIP_CONTROL GLM_CLIP_CONTROL_LH_ZO
 #include <glm/vec2.hpp> // glm::vec2
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
@@ -6,6 +8,9 @@
 #include <glm/ext/matrix_clip_space.hpp> // glm::perspective
 #include "glm/gtc/matrix_transform.hpp"
 #include <glad/glad.h>
+#define SOKOL_LOG_IMPL
+#include "sokol_log.h"
+#include <SDL3/SDL.h>
 
 #define SOKOL_IMPL
 #define SOKOL_METAL
@@ -16,6 +21,11 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
+
+#import <AppKit/NSWindow.h>
+#ifdef SDL_VIDEO_DRIVER_UIKIT
+#import <UIKit/UIKit.h>
+#endif
 
 namespace {
     struct RenderPipline {
@@ -31,6 +41,7 @@ namespace {
 
     RenderPipline guiPipline;
     RenderPipline gamePipline;
+    CAMetalLayer *metal_layer;
 
     RenderPipline make_game_pipline() {
         float vertices[] = {
@@ -112,7 +123,7 @@ namespace {
         RenderPipline rPipline{0};
         sg_buffer_desc buf{ 0 };
         buf.data = { 0, sizeof(float) * 4000 };
-        buf.label = "triangle-vertices";
+        buf.label = "gui-vertices";
         buf.usage = SG_USAGE_DYNAMIC;
         state.guiBuffer = sg_make_buffer(buf);
         rPipline.bind.vertex_buffers[0] = state.guiBuffer;
@@ -123,7 +134,7 @@ namespace {
         desc.layout.attrs[ATTR_gui_position].format = SG_VERTEXFORMAT_FLOAT3;
         desc.layout.attrs[ATTR_gui_color0].format = SG_VERTEXFORMAT_FLOAT4;
         desc.layout.attrs[ATTR_gui_texCoords0].format = SG_VERTEXFORMAT_FLOAT2;
-        desc.label = "triangle-pipeline";
+        desc.label = "gui-pipeline";
         desc.cull_mode = SG_CULLMODE_BACK;
         desc.depth.write_enabled = false;
         desc.colors[0].blend.enabled = true;
@@ -185,11 +196,32 @@ namespace Engine {
         origin.y = offset;
     }
 
-    void Graphics::initialize(void* GPUContext) {
+    void Graphics::initialize(void* GPUContext, uint32_t width, uint32_t height) {
         origin = glm::vec3(0);
         sg_desc ff { 0 };
-        const CAMetalLayer *mLayer = reinterpret_cast<CAMetalLayer *>(GPUContext);
-        ff.environment.metal.device = mLayer.device;
+        ff.logger.func = slog_func;
+        #ifdef SDL_VIDEO_DRIVER_UIKIT
+                UIView *view = SDL_Metal_CreateView(window);
+        #endif
+        
+        NSWindow* nsWindow = reinterpret_cast<NSWindow*>(GPUContext);
+        
+        // Setup the Metal layer
+        metal_layer = [CAMetalLayer layer];
+        metal_layer.device = MTLCreateSystemDefaultDevice();
+        metal_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+        nsWindow.contentView.layer = metal_layer;
+        nsWindow.contentView.wantsLayer = NO;
+        
+//        const CAMetalLayer *mLayer = reinterpret_cast<CAMetalLayer *>(GPUContext);
+//        mLayer.
+        
+        MTLTextureDescriptor * depthBufferDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:width height:height mipmapped:NO];
+//        depthBufferDescriptor.usage = MTLTextureUsageRenderTarget;
+        [depthBufferDescriptor setUsage: MTLTextureUsageRenderTarget];
+        [depthBufferDescriptor setStorageMode: MTLStorageModePrivate];
+        ff.environment.metal.device = metal_layer.device;
+       
         sg_setup(ff);
         // a pass action to clear framebuffer to black
         sg_pass_action pass;
@@ -201,14 +233,17 @@ namespace Engine {
         state.pass_action = pass;
 
         gamePipline = make_game_pipline();
-        state.swapchain.metal.color_format = SG_PIXELFORMAT_BGRA8;
+        state.swapchain.color_format = SG_PIXELFORMAT_BGRA8;
+        
+        state.swapchain.metal.depth_stencil_texture = [metal_layer.device newTextureWithDescriptor: depthBufferDescriptor];
+//        state.swapchain.metal.depth_stencil_texture
 
 	}
 
     void Graphics::beginDraw(uint32_t width, uint32_t height) {
         state.swapchain.height = height;
         state.swapchain.width = width;
-
+        state.swapchain.metal.current_drawable = metal_layer.nextDrawable;
         sg_pass pass{};
         pass.action = state.pass_action;
         pass.swapchain = state.swapchain;
