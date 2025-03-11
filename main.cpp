@@ -1,9 +1,10 @@
 #include "engine/window.h"
 #include "engine/graphics.h"
 #include <SDL3_ttf/SDL_ttf.h>
-#define SDL_MAIN_HANDLED true
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_main.h>
+
 void createBox();
 
 glm::vec2 mouse_pos;
@@ -172,9 +173,11 @@ Engine::GUINode composeText(std::string text) {
     return root;
 }
 
-
+Engine::Window main_window;
 int main(int argc, char* argv[]) {
-    Engine::Window main_window;
+    if (not SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)){
+        return NULL;
+    }
     main_window.initialize("Splitter", 600, 1200);
 
     Engine::Graphics main_graphics;
@@ -286,8 +289,9 @@ int main(int argc, char* argv[]) {
     std::vector<uint8_t> tex_image;
     uint8_t depth;
     uint32_t width, height;
-
-    SDL_Surface* img = initFont("arial.ttf");
+    auto basePathPtr = SDL_GetBasePath();
+    std::string path = basePathPtr;
+    SDL_Surface* img = initFont((path + "arial.ttf").c_str());
     SDL_FlipSurface(img, SDL_FlipMode::SDL_FLIP_VERTICAL);
     tex_image.reserve(img->h* img->pitch);
     std::copy(
@@ -324,7 +328,7 @@ int main(int argc, char* argv[]) {
 
     while (true) { // engine loop        
         Engine::Box& select = boxes.back();
-
+//
         if (select.position.x > 3.0f && moveByX) {
             dir = -1;
         }
@@ -350,7 +354,7 @@ int main(int argc, char* argv[]) {
             main_graphics.setZoom(5);
         }
         y_offset_off = lerp(y_offset_off, y_offset, 0.016);
-
+//
         glm::vec2 screenResolution = glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight());
         glm::vec2 vec2Zero(0);
         composer.compose(text, localResolution, screenResolution, vec2Zero);
@@ -375,22 +379,18 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-
-
+//
+//
         main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
         {
-
-            
-            // Draw gui
-            
-
+//             Draw gui
             main_graphics.drawBoxes(boxes);
             main_graphics.setCameraOffsetY(y_offset_off);
-            // TODO fix gui
+//             TODO fix gui
             main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
       
             
-            //mainBox.size = glm::vec3(2.0f);
+            mainBox.size = glm::vec3(2.0f);
         }
         main_graphics.endDraw();
         main_window.present();

@@ -19,3 +19,6 @@
 	path = dependency/SDL_ttf
 	url = https://github.com/libsdl-org/SDL_ttf.git
 	branch = SDL2
+[submodule "dependency/SDL"]
+	path = dependency/SDL
+	url = https://github.com/libsdl-org/SDL.git

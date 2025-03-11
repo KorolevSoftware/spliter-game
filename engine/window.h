@@ -34,8 +34,9 @@ namespace Engine {
 
 		void present();
 		void* GPUContext;
+        SDL_Window* window;
 	private:
-		SDL_Window* window;
+		
 	
 	};
 };

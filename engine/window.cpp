@@ -54,12 +54,15 @@ namespace Engine
         gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
 #endif
 
-        window = SDL_CreateWindow(name.data(),
-                                  width, height, 0);
+        window = SDL_CreateWindow(name.data(), width, height, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
         
 #if defined(__APPLE__) && defined(__MACH__)
-#if TARGET_OS_MAC == 1
+#if TARGET_OS_OSX
         GPUContext = SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, nullptr);
+#endif
+
+#if TARGET_OS_IPHONE
+        GPUContext = SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, nullptr);
 #endif
 #endif
         
@@ -104,6 +107,9 @@ namespace Engine
 
         if (SDL_PollEvent(&ev))
         {
+            if (ev.type ==SDL_EVENT_POLL_SENTINEL)
+                return false;
+            
             if (ev.type == SDL_EVENT_WINDOW_RESIZED)
             {
                 width = ev.window.data1;
@@ -111,7 +117,7 @@ namespace Engine
                 spdlog::info("Screen resize to: {0}x{1}", width, height);
             }
             wEvent.released = ev.type == SDL_EVENT_MOUSE_BUTTON_UP;
-            wEvent.pressed = ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
+            wEvent.pressed = ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN || ev.type == SDL_EVENT_FINGER_DOWN;
             wEvent.posX = (uint32_t)ev.button.x;
             wEvent.posY = height - (uint32_t)ev.button.y;
             return true;

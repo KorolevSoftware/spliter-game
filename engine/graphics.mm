@@ -22,9 +22,14 @@
 #include <vector>
 
 
-#import <AppKit/NSWindow.h>
-#ifdef SDL_VIDEO_DRIVER_UIKIT
+
+
+#ifdef TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#import <Metal/Metal.h>
+#import <MetalKit/MetalKit.h>
+#else
+#import <AppKit/NSWindow.h>
 #endif
 
 namespace {
@@ -42,6 +47,8 @@ namespace {
     RenderPipline guiPipline;
     RenderPipline gamePipline;
     CAMetalLayer *metal_layer;
+    id <MTLDevice> device;
+    id mtk_view_controller;
 
     RenderPipline make_game_pipline() {
         float vertices[] = {
@@ -199,43 +206,57 @@ namespace Engine {
     void Graphics::initialize(void* GPUContext, uint32_t width, uint32_t height) {
         origin = glm::vec3(0);
         sg_desc ff { 0 };
+        ff.environment.defaults.depth_format =SG_PIXELFORMAT_DEPTH;
         ff.logger.func = slog_func;
-        #ifdef SDL_VIDEO_DRIVER_UIKIT
-                UIView *view = SDL_Metal_CreateView(window);
-        #endif
         
-        NSWindow* nsWindow = reinterpret_cast<NSWindow*>(GPUContext);
-        
+        device = MTLCreateSystemDefaultDevice();
         // Setup the Metal layer
         metal_layer = [CAMetalLayer layer];
-        metal_layer.device = MTLCreateSystemDefaultDevice();
+        metal_layer.device = device;
         metal_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+        metal_layer.frame = [UIScreen mainScreen].bounds;
+        
+        #if TARGET_OS_IPHONE
+        UIWindow* uiWindow = reinterpret_cast<UIWindow*>(GPUContext);
+        UIView *fullScreenView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        UIViewController *newViewController = [[UIViewController alloc] init];
+        newViewController.view = fullScreenView;
+       
+        [uiWindow setRootViewController:newViewController];
+//        [uiWindow makeKeyAndVisible];
+        [fullScreenView.layer addSublayer:metal_layer];
+
+        [uiWindow addSubview:fullScreenView];
+        #endif
+        
+        #if TARGET_OSX
+        NSWindow* nsWindow = reinterpret_cast<NSWindow*>(GPUContext);
         nsWindow.contentView.layer = metal_layer;
         nsWindow.contentView.wantsLayer = NO;
+        #endif
         
-//        const CAMetalLayer *mLayer = reinterpret_cast<CAMetalLayer *>(GPUContext);
-//        mLayer.
         
-        MTLTextureDescriptor * depthBufferDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float_Stencil8 width:width height:height mipmapped:NO];
-//        depthBufferDescriptor.usage = MTLTextureUsageRenderTarget;
+       
+        
+        MTLTextureDescriptor * depthBufferDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float width:width height:height mipmapped:NO];
         [depthBufferDescriptor setUsage: MTLTextureUsageRenderTarget];
         [depthBufferDescriptor setStorageMode: MTLStorageModePrivate];
-        ff.environment.metal.device = metal_layer.device;
+        ff.environment.metal.device = device;
        
         sg_setup(ff);
         // a pass action to clear framebuffer to black
         sg_pass_action pass;
-        pass.colors[0].clear_value = { 0.0f, 0.0f, 0.0f, 1.0f };
+        pass.colors[0].clear_value = { 0.0f, 0.0f, 1.0f, 1.0f };
         pass.colors[0].load_action = SG_LOADACTION_CLEAR;
         pass.depth.load_action = SG_LOADACTION_CLEAR;
         pass.depth.clear_value = 1.0f;
-
         state.pass_action = pass;
 
         gamePipline = make_game_pipline();
         state.swapchain.color_format = SG_PIXELFORMAT_BGRA8;
+        state.swapchain.depth_format = SG_PIXELFORMAT_DEPTH;
         
-        state.swapchain.metal.depth_stencil_texture = [metal_layer.device newTextureWithDescriptor: depthBufferDescriptor];
+        state.swapchain.metal.depth_stencil_texture = [device newTextureWithDescriptor: depthBufferDescriptor];
 //        state.swapchain.metal.depth_stencil_texture
 
 	}
@@ -243,7 +264,7 @@ namespace Engine {
     void Graphics::beginDraw(uint32_t width, uint32_t height) {
         state.swapchain.height = height;
         state.swapchain.width = width;
-        state.swapchain.metal.current_drawable = metal_layer.nextDrawable;
+        state.swapchain.metal.current_drawable = [metal_layer nextDrawable];
         sg_pass pass{};
         pass.action = state.pass_action;
         pass.swapchain = state.swapchain;
