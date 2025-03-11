@@ -218,16 +218,7 @@ namespace Engine {
         
         #if TARGET_OS_IPHONE
         UIWindow* uiWindow = reinterpret_cast<UIWindow*>(GPUContext);
-//        UIView *fullScreenView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-//        UIViewController *newViewController = [[UIViewController alloc] init];
-//        newViewController.view = fullScreenView;
-       
         [uiWindow.rootViewController.view.layer addSublayer: metal_layer];
-//        [uiWindow setRootViewController:newViewController];
-//        [uiWindow makeKeyAndVisible];
-//        [fullScreenView.layer addSublayer:metal_layer];
-
-//        [uiWindow addSubview:fullScreenView];
         #endif
         
         #if TARGET_OSX
