@@ -14,6 +14,7 @@
 
 #define SOKOL_IMPL
 #define SOKOL_METAL
+#define SOKOL_DEBUG
 
 #include <sokol_gfx.h>
 // #include <sokol_app.h>
@@ -32,6 +33,11 @@
 #import <AppKit/NSWindow.h>
 #endif
 
+#if ! __has_feature(objc_arc)
+#error "ARC is off"
+#endif
+
+
 namespace {
     struct RenderPipline {
         sg_pipeline pip;
@@ -48,7 +54,7 @@ namespace {
     RenderPipline gamePipline;
     CAMetalLayer *metal_layer;
     id <MTLDevice> device;
-    id mtk_view_controller;
+    id <MTLTexture> depthTexture;
 
     RenderPipline make_game_pipline() {
         float vertices[] = {
@@ -184,15 +190,16 @@ namespace {
 namespace Engine {
 
     void Graphics::drawGui(const uint8_t* data, uint32_t sizeofdata, uint32_t vertexCount) {
-        
-        // Draw GUi
-        glm::mat4 ortho = glm::ortho(0.0f, (float)state.swapchain.width, 0.0f, (float)state.swapchain.height);
-        sg_apply_pipeline(guiPipline.pip);
-        sg_apply_bindings(guiPipline.bind);
-        auto range = SG_RANGE(ortho);
-        sg_apply_uniforms(UB_vs_params1, &range);
-        sg_update_buffer(state.guiBuffer, { data, sizeofdata });
-        sg_draw(0, vertexCount, 1);
+        @autoreleasepool {
+            // Draw GUi
+            glm::mat4 ortho = glm::ortho(0.0f, (float)state.swapchain.width, 0.0f, (float)state.swapchain.height);
+            sg_apply_pipeline(guiPipline.pip);
+            sg_apply_bindings(guiPipline.bind);
+            auto range = SG_RANGE(ortho);
+            sg_apply_uniforms(UB_vs_params1, &range);
+            sg_update_buffer(state.guiBuffer, { data, sizeofdata });
+            sg_draw(0, vertexCount, 1);
+        }
     }
 
     void Graphics::setZoom(float zoom) {
@@ -217,7 +224,7 @@ namespace Engine {
         metal_layer.frame = [UIScreen mainScreen].bounds;
         
         #if TARGET_OS_IPHONE
-        UIWindow* uiWindow = reinterpret_cast<UIWindow*>(GPUContext);
+        UIWindow* uiWindow = (__bridge UIWindow*)GPUContext;
         [uiWindow.rootViewController.view.layer addSublayer: metal_layer];
         #endif
         
@@ -227,13 +234,11 @@ namespace Engine {
         nsWindow.contentView.wantsLayer = NO;
         #endif
         
-        
-       
-        
         MTLTextureDescriptor * depthBufferDescriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float width:width height:height mipmapped:NO];
         [depthBufferDescriptor setUsage: MTLTextureUsageRenderTarget];
-        [depthBufferDescriptor setStorageMode: MTLStorageModePrivate];
-        ff.environment.metal.device = device;
+        [depthBufferDescriptor setStorageMode: MTLStorageModeMemoryless];
+        depthTexture = [device newTextureWithDescriptor: depthBufferDescriptor];
+        ff.environment.metal.device = (__bridge const void*)device;
        
         sg_setup(ff);
         // a pass action to clear framebuffer to black
@@ -247,53 +252,57 @@ namespace Engine {
         gamePipline = make_game_pipline();
         state.swapchain.color_format = SG_PIXELFORMAT_BGRA8;
         state.swapchain.depth_format = SG_PIXELFORMAT_DEPTH;
-        
-        state.swapchain.metal.depth_stencil_texture = [device newTextureWithDescriptor: depthBufferDescriptor];
-//        state.swapchain.metal.depth_stencil_texture
-
+       
+        state.swapchain.metal.depth_stencil_texture = (__bridge const void*)depthTexture;
 	}
 
     void Graphics::beginDraw(uint32_t width, uint32_t height) {
-        state.swapchain.height = height;
-        state.swapchain.width = width;
-        state.swapchain.metal.current_drawable = [metal_layer nextDrawable];
-        sg_pass pass{};
-        pass.action = state.pass_action;
-        pass.swapchain = state.swapchain;
-
-
-        sg_begin_pass(pass);
-        aspectRation = (float)width / (float)height;
-
+        @autoreleasepool {
+            state.swapchain.height = height;
+            state.swapchain.width = width;
+            state.swapchain.metal.current_drawable = (__bridge const void*)[metal_layer nextDrawable];
+            sg_pass pass{};
+            pass.action = state.pass_action;
+            pass.swapchain = state.swapchain;
+            
+            
+            sg_begin_pass(pass);
+            aspectRation = (float)width / (float)height;
+        }
     }
 
     void Graphics::endDraw() {
-        sg_end_pass();
-        sg_commit();
+        @autoreleasepool {
+            sg_end_pass();
+            sg_commit();
+        }
     }
 
     void Graphics::drawBoxes(const std::vector<Box>& boxes) {
         // draw Game
-    
-        glm::mat4 projectionOrthoNO = glm::ortho(-zoom * aspectRation, zoom * aspectRation, -zoom, zoom, 0.001f, 100.0f);
-        glm::mat4 camera = glm::lookAt(glm::vec3(12.0f, 16.0f, 12.0f)+ origin, glm::vec3(0.0f)+ origin, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 mvp = projectionOrthoNO * camera;
-
-        sg_apply_pipeline(gamePipline.pip);
-        sg_apply_bindings(gamePipline.bind);
-
-        for (const auto& box : boxes) {
-            vs_params1_t box_params;
-            box_params.mvp = mvp;
-            box_params.box_position = box.position;
-            box_params.box_size = box.size;
-            auto range = SG_RANGE(box_params);
-            sg_apply_uniforms(UB_vs_params, &range);
-            sg_draw(0, 36, 1);
+        @autoreleasepool {
+            glm::mat4 projectionOrthoNO = glm::ortho(-zoom * aspectRation, zoom * aspectRation, -zoom, zoom, 0.001f, 100.0f);
+            glm::mat4 camera = glm::lookAt(glm::vec3(12.0f, 16.0f, 12.0f)+ origin, glm::vec3(0.0f)+ origin, glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 mvp = projectionOrthoNO * camera;
+            
+            sg_apply_pipeline(gamePipline.pip);
+            sg_apply_bindings(gamePipline.bind);
+            
+            for (const auto& box : boxes) {
+                vs_params1_t box_params;
+                box_params.mvp = mvp;
+                box_params.box_position = box.position;
+                box_params.box_size = box.size;
+                auto range = SG_RANGE(box_params);
+                sg_apply_uniforms(UB_vs_params, &range);
+                sg_draw(0, 36, 1);
+            }
         }
     }
 
     void Graphics::setImage(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t depth) {
-        guiPipline = make_gui_pipline(pixels, width, height, depth);
+        @autoreleasepool {
+            guiPipline = make_gui_pipline(pixels, width, height, depth);
+        }
     }
 }
