@@ -267,6 +267,7 @@ namespace Engine {
             
             
             sg_begin_pass(pass);
+            sg_apply_viewport(0,0, width, height, false);
             aspectRation = (float)width / (float)height;
         }
     }
