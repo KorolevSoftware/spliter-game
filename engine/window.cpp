@@ -18,9 +18,6 @@ namespace Engine
 {
     WindowStatus Window::initialize(std::string_view name, uint32_t width, uint32_t height)
     {
-        this->width = width;
-        this->height = height;
-
 #ifdef window10 // windows opengl
         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
@@ -65,6 +62,7 @@ namespace Engine
         GPUContext = SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_UIKIT_WINDOW_POINTER, nullptr);
 #endif
 #endif
+        SDL_GetWindowSize(window, &this->width, & this->height);
         
         return WindowStatus::Success;
     }
@@ -107,7 +105,7 @@ namespace Engine
 
         if (SDL_PollEvent(&ev))
         {
-            if (ev.type ==SDL_EVENT_POLL_SENTINEL)
+            if (ev.type == SDL_EVENT_POLL_SENTINEL)
                 return false;
             
             if (ev.type == SDL_EVENT_WINDOW_RESIZED)
@@ -117,7 +115,7 @@ namespace Engine
                 spdlog::info("Screen resize to: {0}x{1}", width, height);
             }
             wEvent.released = ev.type == SDL_EVENT_MOUSE_BUTTON_UP;
-            wEvent.pressed = ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN || ev.type == SDL_EVENT_FINGER_DOWN;
+            wEvent.pressed = ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
             wEvent.posX = (uint32_t)ev.button.x;
             wEvent.posY = height - (uint32_t)ev.button.y;
             return true;

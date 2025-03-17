@@ -23,7 +23,7 @@ namespace Engine {
 
 	struct Window final {
 
-		uint32_t width, height;
+		int width, height;
 		bool getEvent(WindowEvent& event);
 		uint32_t getWidth();
 		uint32_t getHeight();
