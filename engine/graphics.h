@@ -1,7 +1,8 @@
 #pragma once
 #include "glm/fwd.hpp"
-#include "gui.h"
-
+#include <glm/vec2.hpp> // glm::vec2
+#include <glm/vec3.hpp> // glm::vec2
+#include <glm/vec4.hpp> // glm::vec2
 namespace Engine {
 	struct Box {
 		glm::vec3 position;

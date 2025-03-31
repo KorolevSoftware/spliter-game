@@ -1,6 +1,7 @@
 #include <glm/vec2.hpp> // glm::vec2
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
+#include <glm/ext/scalar_common.hpp>
 #include "gui.h"
 
 namespace Engine {
@@ -12,16 +13,16 @@ namespace Engine {
         float temp;
         switch (adjust) {
         case GUIAdjustMod::Fit:
-            temp = std::min(aspectRation.x, aspectRation.y);
+            temp = glm::fmin(aspectRation.x, aspectRation.y);
             return glm::vec2(temp);
 
         case GUIAdjustMod::Zoom:
-            temp = std::max(aspectRation.x, aspectRation.y);
+            temp = glm::fmax(aspectRation.x, aspectRation.y);
             return glm::vec2(temp);
 
         case GUIAdjustMod::Stretch:
             return aspectRation;
-        } 
+        }
     }
 
     bool GUIComposer::compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
@@ -42,8 +43,8 @@ namespace Engine {
 
     bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset) {
         glm::vec2 adjustScale = calculateAdjust(aspectRation, node.adjustMod);
-       
         glm::vec2 offsetAdjustScale = adjustScale;
+
         if (node.anchorX) {
             offsetAdjustScale.x = aspectRation.x;
         }
@@ -175,6 +176,6 @@ namespace Engine {
         }
     }
 
-    GUIVertex::GUIVertex(glm::vec3 position, glm::vec4 color, glm::vec2 texCoords):position(position), color(color), texCoords(texCoords){}
-
+    GUIVertex::GUIVertex(glm::vec3 position, glm::vec4 color, glm::vec2 texCoords): position(position), color(color), texCoords(texCoords) {
+    }
 };

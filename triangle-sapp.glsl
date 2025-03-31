@@ -33,7 +33,7 @@ uniform texture2D tex;
 uniform sampler smp;
 
 void main() {
-    frag_color = texture(sampler2D(tex, smp), texCoords) * color;
+    frag_color = texture(sampler2D(tex, smp), texCoords) + color;
 }
 @end
 

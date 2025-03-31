@@ -2,6 +2,10 @@
 #include "engine/graphics.h"
 #include <SDL_ttf.h>
 #include <SDL_surface.h>
+#include "engine/gui.h"
+#include "engine/gui2.h"
+#include "engine/gui_billboard.h"
+
 void createBox();
 
 glm::vec2 mouse_pos;
@@ -134,7 +138,7 @@ SDL_Surface* initFont(char* filename) {
 
 Engine::GUINode composeText(std::string text) {
     Engine::GUINode root;
-    root.position = glm::vec2(0, 250);
+    root.position = glm::vec2(0, 0);
     root.size = glm::vec2(512, 512);
     root.adjustMod = Engine::GUIAdjustMod::Fit;
     root.anchorX = false;
@@ -171,20 +175,42 @@ Engine::GUINode composeText(std::string text) {
     return root;
 }
 
-SDL_Surface* flip_vertical(SDL_Surface* sfc) {
-    SDL_Surface* result = SDL_CreateRGBSurface(sfc->flags, sfc->w, sfc->h,
-        sfc->format->BytesPerPixel * 8, sfc->format->Rmask, sfc->format->Gmask,
-        sfc->format->Bmask, sfc->format->Amask);
-    const auto pitch = sfc->pitch;
-    const auto pxlength = pitch * (sfc->h - 1);
-    auto pixels = static_cast<unsigned char*>(sfc->pixels) + pxlength;
-    auto rpixels = static_cast<unsigned char*>(result->pixels);
-    for (auto line = 0; line < sfc->h; ++line) {
-        memcpy(rpixels, pixels, pitch);
-        pixels -= pitch;
-        rpixels += pitch;
+
+SDL_Surface* flip_vertical(SDL_Surface * surface) {
+    // Проверка исходного surface на NULL
+    if (!surface) {
+        return NULL;
     }
-    return result;
+
+    // Создаем новый surface того же формата и размеров
+    SDL_Surface* flipped = SDL_CreateRGBSurface(
+        0, surface->w, surface->h, surface->format->BitsPerPixel,
+        surface->format->Rmask, surface->format->Gmask, surface->format->Bmask, surface->format->Amask
+    );
+
+    // Проверка успешного создания нового surface
+    if (!flipped) {
+        return NULL;
+    }
+
+    // Получаем высоту и ширину surface
+    int height = surface->h;
+    int pitch = surface->pitch; // Количество байтов в каждой строке
+
+    // Указатели на начало данных surface
+    Uint8* pixels = (Uint8*)surface->pixels;
+    Uint8* flippedPixels = (Uint8*)flipped->pixels;
+
+    // Копируем строки пикселей в обратном порядке
+    for (int y = 0; y < height; ++y) {
+        memcpy(
+            flippedPixels + (y * pitch), // Куда копировать
+            pixels + ((height - 1 - y) * pitch), // Откуда копировать
+            pitch // Сколько байтов копировать
+        );
+    }
+
+    return flipped;
 }
 
 int main(int argc, char* argv[]) {
@@ -194,108 +220,7 @@ int main(int argc, char* argv[]) {
     Engine::Graphics main_graphics;
     main_graphics.initialize();
 
-    Engine::GUINode startButton;
-    startButton.position = glm::vec2(300, 834);
-    startButton.size = glm::vec2(400, 200);
-    startButton.adjustMod = Engine::GUIAdjustMod::Fit;
-    startButton.anchorX = false;
-    startButton.anchorY = false;
-    startButton.pivot = Engine::GUIPivot::Centre;
-    startButton.color = glm::vec4(1, 1, 1, 1);
-    startButton.hash = 1111;
-
-
-    Engine::GUINode help;
-    help.position = glm::vec2(69, 1100);
-    help.size = glm::vec2(55, 55);
-    help.adjustMod = Engine::GUIAdjustMod::Fit;
-    help.anchorX = true;
-    help.anchorY = false;
-    help.pivot = Engine::GUIPivot::Centre;
-    help.color = glm::vec4(0, 0, 1, 1);
-    help.hash = 0;
-
-    Engine::GUINode score;
-    score.position = glm::vec2(528, 1100);
-    score.size = glm::vec2(80, 55);
-    score.adjustMod = Engine::GUIAdjustMod::Fit;
-    score.anchorX = true;
-    score.anchorY = false;
-    score.pivot = Engine::GUIPivot::Centre;
-    score.color = glm::vec4(0, 0, 1, 1);
-    score.hash = 0;
-
-    Engine::GUINode menu;
-    menu.position = glm::vec2(300, 140);
-    menu.size = glm::vec2(80, 55);
-    menu.adjustMod = Engine::GUIAdjustMod::Fit;
-    menu.anchorX = false;
-    menu.anchorY = false;
-    menu.pivot = Engine::GUIPivot::Centre;
-    menu.color = glm::vec4(0, 0, 1, 1);
-    menu.visable = false;
-    menu.hash = 0;
-
-    Engine::GUINode skins;
-    skins.position = glm::vec2(-200, 0);
-    skins.size = glm::vec2(80, 80);
-    skins.adjustMod = Engine::GUIAdjustMod::Fit;
-    skins.anchorX = false;
-    skins.anchorY = false;
-    skins.pivot = Engine::GUIPivot::Centre;
-    skins.color = glm::vec4(0, 0, 1, 1);
-    skins.hash = 0;
-
-    Engine::GUINode noads;
-    noads.position = glm::vec2(-65, 0);
-    noads.size = glm::vec2(80, 80);
-    noads.adjustMod = Engine::GUIAdjustMod::Fit;
-    noads.anchorX = false;
-    noads.anchorY = false;
-    noads.pivot = Engine::GUIPivot::Centre;
-    noads.color = glm::vec4(0, 0, 1, 1);
-    noads.hash = 0;
-
-    Engine::GUINode ratings;
-    ratings.position = glm::vec2(70, 0);
-    ratings.size = glm::vec2(80, 80);
-    ratings.adjustMod = Engine::GUIAdjustMod::Fit;
-    ratings.anchorX = false;
-    ratings.anchorY = false;
-    ratings.pivot = Engine::GUIPivot::Centre;
-    ratings.color = glm::vec4(0, 0, 1, 1);
-    ratings.hash = 0;
-
-    Engine::GUINode settings;
-    settings.position = glm::vec2(205, 0);
-    settings.size = glm::vec2(80, 80);
-    settings.adjustMod = Engine::GUIAdjustMod::Fit;
-    settings.anchorX = false;
-    settings.anchorY = false;
-    settings.pivot = Engine::GUIPivot::Centre;
-    settings.color = glm::vec4(0, 0, 1, 1);
-    settings.hash = 0;
-
-    menu.childs.push_back(skins);
-    menu.childs.push_back(noads);
-    menu.childs.push_back(ratings);
-    menu.childs.push_back(settings);
-
-
-    Engine::GUINode testStrech;
-    testStrech.hash = 0;
-    testStrech.position = glm::vec2(533, 603);
-    testStrech.size = glm::vec2(200, 100);
-    testStrech.adjustMod = Engine::GUIAdjustMod::Stretch;
-    testStrech.anchorX = false;
-    testStrech.anchorY = false;
-    testStrech.pivot = Engine::GUIPivot::Centre;
-    testStrech.color = glm::vec4(1, 1, 1, 1);
-    testStrech.hash = 0;
-
-
-
-    Engine::GUIComposer composer(4000);
+    Engine2::GUIComposer composer(4000);
 
     std::vector<uint8_t> tex_image;
     uint8_t depth;
@@ -313,7 +238,6 @@ int main(int argc, char* argv[]) {
     width = img->w;
     height = img->h;
 
-    
     //main_window.loadImage("cat.png", tex_image, depth, width, height);
     main_graphics.setImage(tex_image, width, height, depth);
 
@@ -330,11 +254,9 @@ int main(int argc, char* argv[]) {
     boxes.push_back(mainBox);
     createBox();
     main_graphics.setZoom(3);
-
-
-
   
-    Engine::GUINode text = composeText("Hello world");
+    //Engine::GUINode text = composeText("Hello world");
+    Engine2::GUINode testQuad = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
 
     while (true) { // engine loop        
         Engine::Box& select = boxes.back();
@@ -360,6 +282,7 @@ int main(int argc, char* argv[]) {
         } else {
             select.position.z += dir * 0.016;
         }
+
         if (gameOver) {
             main_graphics.setZoom(5);
         }
@@ -367,12 +290,7 @@ int main(int argc, char* argv[]) {
 
         glm::vec2 screenResolution = glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight());
         glm::vec2 vec2Zero(0);
-        composer.compose(text, localResolution, screenResolution, vec2Zero);
-        /*composer.compose(help, localResolution, screenResolution, vec2Zero);
-        composer.compose(score, localResolution, screenResolution, vec2Zero);
-        composer.compose(menu, localResolution, screenResolution, vec2Zero);
-        composer.compose(startButton, localResolution, screenResolution, vec2Zero);
-        composer.compose(testStrech, localResolution, screenResolution, vec2Zero);*/
+
 
         // INPUT
         Engine::WindowEvent wEvent;
@@ -389,19 +307,15 @@ int main(int argc, char* argv[]) {
             }
         }
 
-
         main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
         {
-
-            
             // Draw gui
-            
-
             main_graphics.drawBoxes(boxes);
             main_graphics.setCameraOffsetY(y_offset_off);
+
             // TODO fix gui
+            composer.compose(testQuad, localResolution, screenResolution, vec2Zero);
             main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
-      
             
             //mainBox.size = glm::vec3(2.0f);
         }
