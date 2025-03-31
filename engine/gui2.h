@@ -37,6 +37,7 @@ namespace Engine2 {
 		glm::vec2 size;
 		glm::vec2 position;
 		glm::vec4 color;
+		float angle;
 	};
 
 	struct GUIPrimitiveGenerator {
@@ -73,7 +74,7 @@ namespace Engine2 {
 	struct GUIComposer final {
 		GUIComposer(uint32_t poolSize);
 		bool compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
-		bool composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset);
+		bool composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset, const float parentRotate);
 		void clearVertexBuffer();
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;

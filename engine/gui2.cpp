@@ -2,6 +2,8 @@
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
 #include <glm/ext/scalar_common.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/rotate_vector.hpp>
 #include "gui2.h"
 
 namespace Engine2 {
@@ -42,6 +44,7 @@ namespace Engine2 {
             nodeOffset.y = -drawDim.y;
             nodeOffset.x = -drawDim.x;
             break;
+
         case GUIPivot::NorthWest:
             nodeOffset.y = -drawDim.y;
             nodeOffset.x = drawDim.x;
@@ -88,10 +91,10 @@ namespace Engine2 {
         }
 
         glm::vec2 offset = (actualResolution - localResolution * adjustScale) * 0.5f; // left offset (is fit offset == 0)
-        return composeScreen(node, aspectRation, parentOffset + offset);
+        return composeScreen(node, aspectRation, parentOffset + offset, 0);
     }
 
-    bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset) {
+    bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset, const float parentRotate) {
         glm::vec2 adjustScale = calculateAdjust(aspectRation, node.adjustMod);
         glm::vec2 offsetAdjustScale = adjustScale;
 
@@ -104,26 +107,19 @@ namespace Engine2 {
         }
 
         glm::vec2 screenPosition = node.base.position * offsetAdjustScale + parentOffset;
+        glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size);
+        glm::vec2 rPos = screenPosition + pivotOffset * offsetAdjustScale;
 
-        if (node.visable) {
-            glm::vec2 p1;
-            glm::vec2 p2;
-            
-            GUINodeScreen snode;
-            snode.hash = node.hash;
-            /*snode.screen_p1 = p1;
-            snode.screen_p2 = p2;*/
-            nodesFromScreen.push_back(snode);
-
+        if (node.visable) {            
             int addVertexCount = 0;
             if (node.generator.generator) {
                 addVertexCount = node.generator.generator(&vertexBuffer[vertexArrayOffset], &node.base, node.generator.userData);
             }
 
-            glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size);
-            glm::vec2 rPos = screenPosition + pivotOffset * offsetAdjustScale;
+            const float radians = glm::radians(node.base.angle);
             for (size_t i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
                 GUIVertex& vertex = vertexBuffer[i];
+                vertex.position = glm::rotateZ(vertex.position, radians);
                 vertex.position.x *= adjustScale.x;
                 vertex.position.y *= adjustScale.y;
                 vertex.position += glm::vec3(rPos.x, rPos.y, 0.5f);
@@ -132,7 +128,7 @@ namespace Engine2 {
         }
 
         for (int i = 0; i < 10 && node.children[i] != nullptr; i++) {
-            composeScreen(*node.children[i], adjustScale, screenPosition);
+            composeScreen(*node.children[i], adjustScale, screenPosition, node.base.angle + parentRotate);
         }
     
         return true;

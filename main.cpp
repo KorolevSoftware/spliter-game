@@ -257,6 +257,15 @@ int main(int argc, char* argv[]) {
   
     //Engine::GUINode text = composeText("Hello world");
     Engine2::GUINode testQuad = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
+    Engine2::GUINode testQuad2 = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
+    testQuad.children[0] = &testQuad2;
+    testQuad.base.angle = 60;
+
+    testQuad2.base.size = glm::vec2(100);
+    testQuad2.base.position = glm::vec2(139.0, 0);
+    testQuad2.base.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+
+
 
     while (true) { // engine loop        
         Engine::Box& select = boxes.back();

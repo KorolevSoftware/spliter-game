@@ -14,14 +14,14 @@ namespace Engine2 {
 		glm::vec2 dim = base->size / 2.0f;
 
 			//2-----------------------3
-			//|                      |
-			//|                      |
-			//|                      |
-			//|                      |
-			//|                      |
-			//|                      |
-			//|                      |
-			//1----------------------4
+			//|                       |
+			//|                       |
+			//|                       |
+			//|                       |
+			//|                       |
+			//|                       |
+			//|                       |
+			//1-----------------------4
 
 		glm::vec3 position1(-dim.x, -dim.y, 0.0f); // 1
 		glm::vec3 position2(-dim.x, dim.y, 0.0f); // 2
@@ -46,7 +46,7 @@ namespace Engine2 {
 		node.base.position = glm::vec2(124.0, 834.0);
 		node.base.size = glm::vec2(400.0, 200.0);
 		node.adjustMod = Engine2::GUIAdjustMod::Fit;
-		node.anchorX = true;
+		node.anchorX = false;
 		node.anchorY = false;
 		node.pivot = Engine2::GUIPivot::Centre;
 		node.base.color = glm::vec4(1, 0, 0, 1);
