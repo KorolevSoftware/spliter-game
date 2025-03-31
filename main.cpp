@@ -258,12 +258,24 @@ int main(int argc, char* argv[]) {
     //Engine::GUINode text = composeText("Hello world");
     Engine2::GUINode testQuad = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
     Engine2::GUINode testQuad2 = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
+    Engine2::GUINode testQuad3 = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
     testQuad.children[0] = &testQuad2;
     testQuad.base.angle = 60;
+    testQuad.adjustMod = Engine2::GUIAdjustMod::Stretch;
 
     testQuad2.base.size = glm::vec2(100);
     testQuad2.base.position = glm::vec2(139.0, 0);
     testQuad2.base.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+    testQuad2.base.angle = 60;
+    testQuad2.adjustMod = Engine2::GUIAdjustMod::Zoom;
+    testQuad2.pivot = Engine2::GUIPivot::North;
+    testQuad2.children[0] = &testQuad3;
+
+    testQuad3.base.size = glm::vec2(50);
+    testQuad3.base.angle = 0;
+    testQuad3.base.position = glm::vec2(-50, 0);
+    testQuad3.base.color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+
 
 
 
@@ -315,7 +327,7 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
-
+        //testQuad2.base.angle = testQuad2.base.angle + 0.1;
         main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
         {
             // Draw gui

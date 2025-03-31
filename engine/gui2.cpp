@@ -106,31 +106,35 @@ namespace Engine2 {
             offsetAdjustScale.y = aspectRation.y;
         }
 
-        glm::vec2 screenPosition = node.base.position * offsetAdjustScale + parentOffset;
         glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size);
-        glm::vec2 rPos = screenPosition + pivotOffset * offsetAdjustScale;
+        glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position, 0.0f), glm::radians(parentRotate));
+        glm::vec2 screenPosition = (glm::vec2(rot.x, rot.y) + pivotOffset) * offsetAdjustScale + parentOffset;
 
-        if (node.visable) {            
+        if (node.visable) {
             int addVertexCount = 0;
             if (node.generator.generator) {
                 addVertexCount = node.generator.generator(&vertexBuffer[vertexArrayOffset], &node.base, node.generator.userData);
             }
 
-            const float radians = glm::radians(node.base.angle);
+            const float radians = glm::radians(node.base.angle + parentRotate);
             for (size_t i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
                 GUIVertex& vertex = vertexBuffer[i];
-                vertex.position = glm::rotateZ(vertex.position, radians);
                 vertex.position.x *= adjustScale.x;
                 vertex.position.y *= adjustScale.y;
-                vertex.position += glm::vec3(rPos.x, rPos.y, 0.5f);
+                vertex.position.x += pivotOffset.x * offsetAdjustScale.x;
+                vertex.position.y += pivotOffset.y * offsetAdjustScale.y;
+                vertex.position = glm::rotateZ(vertex.position, radians);
+                vertex.position.x -= pivotOffset.x * offsetAdjustScale.x;
+                vertex.position.y -= pivotOffset.y * offsetAdjustScale.y;
+             
+                vertex.position += glm::vec3(screenPosition.x, screenPosition.y, 0.5f);
             }
             vertexArrayOffset += addVertexCount;
         }
 
         for (int i = 0; i < 10 && node.children[i] != nullptr; i++) {
-            composeScreen(*node.children[i], adjustScale, screenPosition, node.base.angle + parentRotate);
+            composeScreen(*node.children[i], adjustScale, screenPosition - pivotOffset* offsetAdjustScale, node.base.angle + parentRotate);
         }
-    
         return true;
 	}
 
