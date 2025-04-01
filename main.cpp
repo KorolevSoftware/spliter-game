@@ -5,6 +5,7 @@
 #include "engine/gui.h"
 #include "engine/gui2.h"
 #include "engine/gui_billboard.h"
+#include "engine/gui_text.h"
 
 void createBox();
 
@@ -78,16 +79,16 @@ float lerp(float a, float b, float weight) {
     return a * (1 - weight) + b * weight;
 }
 
-static SDL_Rect glyphs[255];
+static Engine2::Rectangle glyphs[255];
 
 
 SDL_Surface* initFont(char* filename) {
     TTF_Init();
     SDL_Surface* surface, * text;
-    SDL_Rect dest;
+    Engine2::Rectangle dest;
     int i;
     char c[2];
-    SDL_Rect* g;
+    Engine2::Rectangle* g;
 
     int texture_size = 512;
 
@@ -118,63 +119,27 @@ SDL_Surface* initFont(char* filename) {
                 exit(1);
             }
         }
-
-        SDL_BlitSurface(text, NULL, surface, &dest);
+        SDL_Rect rr;
+        rr.x = dest.x;
+        rr.y = dest.y;
+        rr.w = dest.w;
+        rr.h = dest.h;
+        SDL_BlitSurface(text, NULL, surface, &rr);
 
         g = &glyphs[i];
 
-        g->x = dest.x;
-        g->y = dest.y;
-        g->w = dest.w;
-        g->h = dest.h;
+        g->x = rr.x;
+        g->y = rr.y;
+        g->w = rr.w;
+        g->h = rr.h;
 
         SDL_FreeSurface(text);
 
-        dest.x += dest.w;
+        dest.x += rr.w;
     }
 
     return surface;
 }
-
-Engine::GUINode composeText(std::string text) {
-    Engine::GUINode root;
-    root.position = glm::vec2(0, 0);
-    root.size = glm::vec2(512, 512);
-    root.adjustMod = Engine::GUIAdjustMod::Fit;
-    root.anchorX = false;
-    root.anchorY = false;
-    root.pivot = Engine::GUIPivot::Centre;
-    root.color = glm::vec4(1, 1, 1, 1);
-    root.hash = 1111;
-    root.visable = true;
-    glm::vec2 text_pos(0, 0);
-    int text_offset = 0;
-    for (auto& ch : text) {
-        SDL_Rect r_ch = glyphs[ch];
-
-        Engine::GUINode n_ch;
-        n_ch.textureCoord1 = glm::vec2(r_ch.x/512.0f, r_ch.y / 512.0f);
-        n_ch.textureCoord2 = glm::vec2(n_ch.textureCoord1.x + r_ch.w / 512.0f, n_ch.textureCoord1.y + r_ch.h / 512.0f);
-        std::swap(n_ch.textureCoord1, n_ch.textureCoord2);
-        n_ch.textureCoord1.y = 1.0f - n_ch.textureCoord1.y;
-        n_ch.textureCoord2.y = 1.0f - n_ch.textureCoord2.y;
-        std::swap(n_ch.textureCoord1.x, n_ch.textureCoord2.x);
-
-        n_ch.position = glm::vec2(text_offset + text_pos.x, text_pos.y);
-        n_ch.size = glm::vec2(r_ch.w, r_ch.h);
-        n_ch.adjustMod = Engine::GUIAdjustMod::Fit;
-        n_ch.anchorX = false;
-        n_ch.anchorY = false;
-        n_ch.pivot = Engine::GUIPivot::West;
-        n_ch.color = glm::vec4(1, 1, 1, 1);
-        n_ch.hash = 0;
-   
-        root.childs.push_back(n_ch);
-        text_offset += r_ch.w;
-    }
-    return root;
-}
-
 
 SDL_Surface* flip_vertical(SDL_Surface * surface) {
     // Проверка исходного surface на NULL
@@ -267,14 +232,25 @@ int main(int argc, char* argv[]) {
     testQuad2.base.position = glm::vec2(139.0, 0);
     testQuad2.base.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     testQuad2.base.angle = 60;
+    testQuad2.anchorX = true;
     testQuad2.adjustMod = Engine2::GUIAdjustMod::Zoom;
-    testQuad2.pivot = Engine2::GUIPivot::North;
+    testQuad2.pivot = Engine2::GUIPivot::Centre;
     testQuad2.children[0] = &testQuad3;
 
     testQuad3.base.size = glm::vec2(50);
     testQuad3.base.angle = 0;
     testQuad3.base.position = glm::vec2(-50, 0);
     testQuad3.base.color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+
+
+    Engine2::Font font;
+    for (size_t i = 0; i < 255; i++) {
+        font.glyphs[i] = glyphs[i];
+    }
+    Engine2::GUINode text = Engine2::make_text("Hellow", &font);
+    text.base.angle = 0;
+    testQuad2.children[1] = &text;
+
 
 
 

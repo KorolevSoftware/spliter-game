@@ -29,10 +29,12 @@ set(ENGINE
 	graphics.h
 	gui.cpp
 	gui.h
-    gui2.cpp
+        gui2.cpp
 	gui2.h
 	gui_billboard.h
 	gui_billboard.cpp
+        gui_text.cpp
+        gui_text.h
 )
 
 add_subdirectory(dependency/SDL2Image)

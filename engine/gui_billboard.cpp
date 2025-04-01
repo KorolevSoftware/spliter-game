@@ -31,13 +31,13 @@ namespace Engine2 {
 		glm::vec3 position5(-dim.x, dim.y, 0.0f); // 2
 		glm::vec3 position6(dim.x, dim.y, 0.0f); // 3
 
-		vertexBuffer[0] = GUIVertex(position1, base->color, glm::vec2(bilboard->textureCoord1.x, bilboard->textureCoord2.y));
-		vertexBuffer[1] = GUIVertex(position2, base->color, bilboard->textureCoord2);
+		vertexBuffer[0] = GUIVertex(position1, base->color, bilboard->textureCoord1);
+		vertexBuffer[1] = GUIVertex(position2, base->color, glm::vec2(bilboard->textureCoord1.x, bilboard->textureCoord2.y));
 		vertexBuffer[2] = GUIVertex(position3, base->color, glm::vec2(bilboard->textureCoord2.x, bilboard->textureCoord1.y));
-
-		vertexBuffer[3] = GUIVertex(position4, base->color, bilboard->textureCoord1);
-		vertexBuffer[4] = GUIVertex(position5, base->color, glm::vec2( bilboard->textureCoord1.x,  bilboard->textureCoord2.y));
-		vertexBuffer[5] = GUIVertex(position6, base->color, glm::vec2( bilboard->textureCoord2.x,  bilboard->textureCoord1.y));
+											  
+		vertexBuffer[3] = GUIVertex(position3, base->color, glm::vec2(bilboard->textureCoord2.x, bilboard->textureCoord1.y));
+		vertexBuffer[4] = GUIVertex(position5, base->color, glm::vec2(bilboard->textureCoord1.x, bilboard->textureCoord2.y));
+		vertexBuffer[5] = GUIVertex(position6, base->color, bilboard->textureCoord2);
 		return 6;
 	}
 

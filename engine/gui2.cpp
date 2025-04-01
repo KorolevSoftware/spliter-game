@@ -16,8 +16,8 @@ namespace Engine2 {
         float temp;
         switch (adjust) {
         case GUIAdjustMod::Fit:
-            temp = glm::fmin(aspectRation.x, aspectRation.y);
-            return glm::vec2(temp);
+           /* temp = glm::fmin(aspectRation.x, aspectRation.y);
+            return glm::vec2(temp);*/
 
         case GUIAdjustMod::Zoom:
             temp = glm::fmax(aspectRation.x, aspectRation.y);
@@ -94,21 +94,21 @@ namespace Engine2 {
         return composeScreen(node, aspectRation, parentOffset + offset, 0);
     }
 
-    bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset, const float parentRotate) {
-        glm::vec2 adjustScale = calculateAdjust(aspectRation, node.adjustMod);
+    bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& parentAspectRation, const glm::vec2& parentOffset, const float parentRotate) {
+        const glm::vec2 adjustScale = calculateAdjust(parentAspectRation, node.adjustMod);
         glm::vec2 offsetAdjustScale = adjustScale;
 
         if (node.anchorX) {
-            offsetAdjustScale.x = aspectRation.x;
+            offsetAdjustScale.x = parentAspectRation.x;
         }
 
         if (node.anchorY) {
-            offsetAdjustScale.y = aspectRation.y;
+            offsetAdjustScale.y = parentAspectRation.y;
         }
 
-        glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size);
-        glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position, 0.0f), glm::radians(parentRotate));
-        glm::vec2 screenPosition = (glm::vec2(rot.x, rot.y) + pivotOffset) * offsetAdjustScale + parentOffset;
+        const glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size) * offsetAdjustScale;
+        const glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position * offsetAdjustScale, 0.0f), glm::radians(parentRotate));
+        glm::vec2 screenPosition = glm::vec2(rot.x, rot.y) + parentOffset + pivotOffset;
 
         if (node.visable) {
             int addVertexCount = 0;
@@ -121,11 +121,11 @@ namespace Engine2 {
                 GUIVertex& vertex = vertexBuffer[i];
                 vertex.position.x *= adjustScale.x;
                 vertex.position.y *= adjustScale.y;
-                vertex.position.x += pivotOffset.x * offsetAdjustScale.x;
-                vertex.position.y += pivotOffset.y * offsetAdjustScale.y;
+                vertex.position.x += pivotOffset.x;
+                vertex.position.y += pivotOffset.y;
                 vertex.position = glm::rotateZ(vertex.position, radians);
-                vertex.position.x -= pivotOffset.x * offsetAdjustScale.x;
-                vertex.position.y -= pivotOffset.y * offsetAdjustScale.y;
+                vertex.position.x -= pivotOffset.x;
+                vertex.position.y -= pivotOffset.y;
              
                 vertex.position += glm::vec3(screenPosition.x, screenPosition.y, 0.5f);
             }
@@ -133,7 +133,7 @@ namespace Engine2 {
         }
 
         for (int i = 0; i < 10 && node.children[i] != nullptr; i++) {
-            composeScreen(*node.children[i], adjustScale, screenPosition - pivotOffset* offsetAdjustScale, node.base.angle + parentRotate);
+            composeScreen(*node.children[i], adjustScale, screenPosition - pivotOffset, node.base.angle + parentRotate);
         }
         return true;
 	}
