@@ -43,6 +43,7 @@ namespace Engine2 {
 	struct GUIPrimitiveGenerator {
 		void* userData;
 		int (*generator)(GUIVertex* vertex, const GUIBase* base, void* userData);
+		bool (*input)(int x, int y, const GUIBase* base, void* userData);
 		void (*release)();
 	};
 
@@ -67,8 +68,10 @@ namespace Engine2 {
 
 	struct GUINodeScreen {
 		uint32_t hash;
-		glm::vec2 screen_p1;
-		glm::vec2 screen_p2;
+		const GUINode* node;
+		glm::vec2 adjustAspect;
+		glm::vec2 position;
+		float angle;
 	};
 
 	struct GUIComposer final {

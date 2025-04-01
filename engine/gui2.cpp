@@ -110,6 +110,14 @@ namespace Engine2 {
         const glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position * offsetAdjustScale, 0.0f), glm::radians(parentRotate));
         glm::vec2 screenPosition = glm::vec2(rot.x, rot.y) + parentOffset + pivotOffset;
 
+        GUINodeScreen snode;
+        snode.hash = node.hash;
+        snode.adjustAspect = adjustScale;
+        snode.angle = node.base.angle + parentRotate;
+        snode.position = screenPosition;
+        snode.node = &node;
+        nodesFromScreen.push_back(snode);
+
         if (node.visable) {
             int addVertexCount = 0;
             if (node.generator.generator) {
@@ -158,14 +166,24 @@ namespace Engine2 {
 
     uint32_t GUIComposer::pickNode(glm::vec2 pos) {
         for (auto& node : nodesFromScreen) {
-            if (node.screen_p2.x > pos.x || pos.x > node.screen_p1.x)
+            //glm::vec2 result = 1.0f / node.adjustAspect;
+            glm::vec2 localPos = (pos - node.position);
+            glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-node.angle));
+
+    
+
+            if (node.node->generator.input(rot.x /node.adjustAspect.x, rot.y / node.adjustAspect.y, &node.node->base, node.node->generator.userData)) {
+                return node.hash;
+            }
+            /*if (node.screen_p2.x > pos.x || pos.x > node.screen_p1.x)
                 continue;
 
             if (node.screen_p2.y > pos.y || pos.y > node.screen_p1.y)
-                continue;
+                continue;*/
 
-            return node.hash;
+           
         }
+        return 0;
     }
 
     GUIVertex::GUIVertex(): position(0.0f, 0.0f, 0.0f), color(0.0f, 0.0f, 0.0f, 0.0f), texCoords(0.0f, 0.0f) {}

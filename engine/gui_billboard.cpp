@@ -9,6 +9,19 @@ namespace Engine2 {
 		BilboardData(glm::vec2 textureCoord1, glm::vec2 textureCoord2) : textureCoord1(textureCoord1), textureCoord2(textureCoord2) {}
 	};
 
+	bool bilboard_input(int x, int y, const GUIBase* base, void* userData) {
+		glm::vec2 dim = base->size / 2.0f;
+
+		if (-dim.x > x || dim.x < x)
+			return false;
+
+		if (-dim.y > y || dim.y < y)
+			return false;
+
+		int gg = 0;
+		return true;
+	}
+
 	int generator(GUIVertex* vertexBuffer, const GUIBase* base, void* userData) {
 		BilboardData* bilboard = reinterpret_cast<BilboardData*>(userData);
 		glm::vec2 dim = base->size / 2.0f;
@@ -55,6 +68,7 @@ namespace Engine2 {
 			node.children[i] = nullptr;
 		}
 		node.generator.generator = generator;
+		node.generator.input = bilboard_input;
 		node.generator.userData = new BilboardData(textureCoord1, textureCoord2);
 		return node;
 	}

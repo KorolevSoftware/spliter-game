@@ -227,6 +227,7 @@ int main(int argc, char* argv[]) {
     testQuad.children[0] = &testQuad2;
     testQuad.base.angle = 60;
     testQuad.adjustMod = Engine2::GUIAdjustMod::Stretch;
+    testQuad.hash = 1;
 
     testQuad2.base.size = glm::vec2(100);
     testQuad2.base.position = glm::vec2(139.0, 0);
@@ -236,28 +237,27 @@ int main(int argc, char* argv[]) {
     testQuad2.adjustMod = Engine2::GUIAdjustMod::Zoom;
     testQuad2.pivot = Engine2::GUIPivot::Centre;
     testQuad2.children[0] = &testQuad3;
+    testQuad2.hash = 2;
 
     testQuad3.base.size = glm::vec2(50);
     testQuad3.base.angle = 0;
     testQuad3.base.position = glm::vec2(-50, 0);
     testQuad3.base.color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+    testQuad3.hash = 3;
 
 
     Engine2::Font font;
     for (size_t i = 0; i < 255; i++) {
         font.glyphs[i] = glyphs[i];
     }
-    Engine2::GUINode text = Engine2::make_text("Hellow", &font);
+    Engine2::GUINode text = Engine2::make_text("Helljgow asdasd $%^& 5467dfgh ", &font);
     text.base.angle = 0;
     testQuad2.children[1] = &text;
 
 
-
-
-
     while (true) { // engine loop        
         Engine::Box& select = boxes.back();
-
+        composer.clearVertexBuffer();
         if (select.position.x > 3.0f && moveByX) {
             dir = -1;
         }
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
         if (select.position.z < -3.0f && !moveByX) {
             dir = 1;
         }
-
+        testQuad2.base.angle += 0.1;
         if(moveByX) {
             select.position.x += dir * 0.016;
         } else {
@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
         glm::vec2 screenResolution = glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight());
         glm::vec2 vec2Zero(0);
 
-
+        composer.compose(testQuad, localResolution, screenResolution, vec2Zero);
         // INPUT
         Engine::WindowEvent wEvent;
         while (main_window.getEvent(wEvent)) { // event loop
@@ -296,10 +296,11 @@ int main(int argc, char* argv[]) {
                
                 mouse_pos.x = wEvent.posX;
                 mouse_pos.y = wEvent.posY;
-                spdlog::info("Click x: {} y:{}", wEvent.posX, wEvent.posY);
-                spdlog::info("createBox");
-                if (0 == composer.pickNode(mouse_pos)) {
+                //spdlog::info("Click x: {} y:{}", wEvent.posX, wEvent.posY);
+                //spdlog::info("createBox");
+                if (1 == composer.pickNode(mouse_pos)) {
                     createBox();
+                    spdlog::info("Hit");
                 }
             }
         }
@@ -311,14 +312,14 @@ int main(int argc, char* argv[]) {
             main_graphics.setCameraOffsetY(y_offset_off);
 
             // TODO fix gui
-            composer.compose(testQuad, localResolution, screenResolution, vec2Zero);
+
             main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
             
             //mainBox.size = glm::vec3(2.0f);
         }
         main_graphics.endDraw();
         main_window.present();
-        composer.clearVertexBuffer();
+        
     }
     return 0;
 }

@@ -42,6 +42,10 @@ namespace Engine2 {
 		vertexBuffer[5] = GUIVertex(position6 + position, color, textureCoord2);
 		return 6;
 	}
+	bool text_input(int x, int y, const GUIBase* base, void* userData) {
+		int gg = 0;
+		return false;
+	}
 
 	int generator_text(GUIVertex* vertexBuffer, const GUIBase* base, void* userData) {
 		TextData* textData = reinterpret_cast<TextData*>(userData);
@@ -85,6 +89,7 @@ namespace Engine2 {
 			node.children[i] = nullptr;
 		}
 		node.generator.generator = generator_text;
+		node.generator.input = text_input;
 		node.generator.userData = new TextData(text, font);
 		return node;
 	}
