@@ -67,9 +67,9 @@ namespace Engine2 {
 		for (size_t i = 0; i < 10; i++) {
 			node.children[i] = nullptr;
 		}
-		node.generator.generator = generator;
-		node.generator.input = bilboard_input;
-		node.generator.userData = new BilboardData(textureCoord1, textureCoord2);
+		node.primitive.generator = generator;
+		node.primitive.input = bilboard_input;
+		node.primitive.userData = new BilboardData(textureCoord1, textureCoord2);
 		return node;
 	}
 }; 

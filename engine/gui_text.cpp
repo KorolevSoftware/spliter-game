@@ -88,9 +88,9 @@ namespace Engine2 {
 		for (size_t i = 0; i < 10; i++) {
 			node.children[i] = nullptr;
 		}
-		node.generator.generator = generator_text;
-		node.generator.input = text_input;
-		node.generator.userData = new TextData(text, font);
+		node.primitive.generator = generator_text;
+		node.primitive.input = text_input;
+		node.primitive.userData = new TextData(text, font);
 		return node;
 	}
 };

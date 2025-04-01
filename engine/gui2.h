@@ -40,7 +40,7 @@ namespace Engine2 {
 		float angle;
 	};
 
-	struct GUIPrimitiveGenerator {
+	struct GUIPrimitive {
 		void* userData;
 		int (*generator)(GUIVertex* vertex, const GUIBase* base, void* userData);
 		bool (*input)(int x, int y, const GUIBase* base, void* userData);
@@ -55,7 +55,7 @@ namespace Engine2 {
 		bool anchorX;
 
 		GUIBase base;
-		GUIPrimitiveGenerator generator;
+		GUIPrimitive primitive;
 		GUINode* children[10];
 		bool visable = true;
 	};
@@ -70,7 +70,7 @@ namespace Engine2 {
 		uint32_t hash;
 		const GUINode* node;
 		glm::vec2 adjustAspect;
-		glm::vec2 position;
+		glm::vec2 screenPosition;
 		float angle;
 	};
 
@@ -81,8 +81,8 @@ namespace Engine2 {
 		void clearVertexBuffer();
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;
-		uint32_t getRenderBufSizeof();
-		uint32_t pickNode(uint32_t hash, glm::vec2 pos);
+		uint32_t getRenderBufSizeof() const;
+		uint32_t pickNode(uint32_t hash, const glm::vec2& pos);
 		uint32_t vertexArrayOffset;
 
 	private:

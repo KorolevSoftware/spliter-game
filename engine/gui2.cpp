@@ -8,176 +8,175 @@
 
 namespace Engine2 {
 	GUIComposer::GUIComposer(uint32_t poolSize) {
-        vertexArrayOffset = 0;
-        vertexBuffer = new GUIVertex[poolSize];
-    }
+		vertexArrayOffset = 0;
+		vertexBuffer = new GUIVertex[poolSize];
+	}
 
-    glm::vec2 calculateAdjust(const glm::vec2& aspectRation, GUIAdjustMod adjust) {
-        float temp;
-        switch (adjust) {
-        case GUIAdjustMod::Fit:
-           /* temp = glm::fmin(aspectRation.x, aspectRation.y);
-            return glm::vec2(temp);*/
+	glm::vec2 calculateAdjust(const glm::vec2& aspectRation, GUIAdjustMod adjust) {
+		float temp;
+		switch (adjust) {
+		case GUIAdjustMod::Fit:
+			temp = glm::fmin(aspectRation.x, aspectRation.y);
+			 return glm::vec2(temp);
 
-        case GUIAdjustMod::Zoom:
-            temp = glm::fmax(aspectRation.x, aspectRation.y);
-            return glm::vec2(temp);
+		case GUIAdjustMod::Zoom:
+			temp = glm::fmax(aspectRation.x, aspectRation.y);
+			return glm::vec2(temp);
 
-        case GUIAdjustMod::Stretch:
-            return aspectRation;
-        }
-    }
+		case GUIAdjustMod::Stretch:
+			return aspectRation;
+		}
+	}
 
-    glm::vec2 calculatePivot(GUIPivot pivot, glm::vec2 nodeSize) {
-        glm::vec2 nodeOffset = glm::vec2(0, 0);
-        glm::vec2 drawDim = nodeSize * 0.5f;
+	glm::vec2 calculatePivot(GUIPivot pivot, glm::vec2 nodeSize) {
+		glm::vec2 nodeOffset = glm::vec2(0, 0);
+		glm::vec2 drawDim = nodeSize * 0.5f;
 
-        switch (pivot) {
-        case GUIPivot::Centre:
-            break;
+		switch (pivot) {
+		case GUIPivot::Centre:
+			break;
 
-        case GUIPivot::North:
-            nodeOffset.y = -drawDim.y;
-            break;
+		case GUIPivot::North:
+			nodeOffset.y = -drawDim.y;
+			break;
 
-        case GUIPivot::NorthEast:
-            nodeOffset.y = -drawDim.y;
-            nodeOffset.x = -drawDim.x;
-            break;
+		case GUIPivot::NorthEast:
+			nodeOffset.y = -drawDim.y;
+			nodeOffset.x = -drawDim.x;
+			break;
 
-        case GUIPivot::NorthWest:
-            nodeOffset.y = -drawDim.y;
-            nodeOffset.x = drawDim.x;
-            break;
+		case GUIPivot::NorthWest:
+			nodeOffset.y = -drawDim.y;
+			nodeOffset.x = drawDim.x;
+			break;
 
-        case GUIPivot::East:
-            nodeOffset.y = 0;
-            nodeOffset.x = -drawDim.x;
-            break;
+		case GUIPivot::East:
+			nodeOffset.y = 0;
+			nodeOffset.x = -drawDim.x;
+			break;
 
-        case GUIPivot::South:
-            nodeOffset.y = drawDim.y;
-            nodeOffset.x = 0;
-            break;
+		case GUIPivot::South:
+			nodeOffset.y = drawDim.y;
+			nodeOffset.x = 0;
+			break;
 
-        case GUIPivot::SouthEast:
-            nodeOffset.y = drawDim.y;
-            nodeOffset.x = -drawDim.x;
-            break;
+		case GUIPivot::SouthEast:
+			nodeOffset.y = drawDim.y;
+			nodeOffset.x = -drawDim.x;
+			break;
 
-        case GUIPivot::SouthWest:
-            nodeOffset.y = drawDim.y;
-            nodeOffset.x = drawDim.x;
-            break;
+		case GUIPivot::SouthWest:
+			nodeOffset.y = drawDim.y;
+			nodeOffset.x = drawDim.x;
+			break;
 
-        case GUIPivot::West:
-            nodeOffset.y = 0;
-            nodeOffset.x = drawDim.x;
-            break;
-        }
-        return nodeOffset;
-    }
+		case GUIPivot::West:
+			nodeOffset.y = 0;
+			nodeOffset.x = drawDim.x;
+			break;
+		}
+		return nodeOffset;
+	}
 
-    bool GUIComposer::compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
-        glm::vec2 aspectRation = actualResolution / localResolution;
-        glm::vec2 adjustScale = calculateAdjust(aspectRation, node.adjustMod);
+	bool GUIComposer::compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
+		glm::vec2 aspectRation = actualResolution / localResolution;
+		glm::vec2 adjustScale = calculateAdjust(aspectRation, node.adjustMod);
 
-        if (node.anchorX) {
-            adjustScale.x = aspectRation.x;
-        }
+		if (node.anchorX) {
+			adjustScale.x = aspectRation.x;
+		}
 
-        if (node.anchorY) {
-            adjustScale.y = aspectRation.y;
-        }
+		if (node.anchorY) {
+			adjustScale.y = aspectRation.y;
+		}
 
-        glm::vec2 offset = (actualResolution - localResolution * adjustScale) * 0.5f; // left offset (is fit offset == 0)
-        return composeScreen(node, aspectRation, parentOffset + offset, 0);
-    }
+		glm::vec2 offset = (actualResolution - localResolution * adjustScale) * 0.5f; // left offset (is fit offset == 0)
+		return composeScreen(node, aspectRation, parentOffset + offset, 0);
+	}
 
-    bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& parentAspectRation, const glm::vec2& parentOffset, const float parentRotate) {
-        const glm::vec2 adjustScale = calculateAdjust(parentAspectRation, node.adjustMod);
-        glm::vec2 offsetAdjustScale = adjustScale;
+	bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& parentAspectRation, const glm::vec2& parentOffset, const float parentRotate) {
+		const glm::vec2 adjustScale = calculateAdjust(parentAspectRation, node.adjustMod);
+		glm::vec2 offsetAdjustScale = adjustScale;
 
-        if (node.anchorX) {
-            offsetAdjustScale.x = parentAspectRation.x;
-        }
+		if (node.anchorX) {
+			offsetAdjustScale.x = parentAspectRation.x;
+		}
 
-        if (node.anchorY) {
-            offsetAdjustScale.y = parentAspectRation.y;
-        }
+		if (node.anchorY) {
+			offsetAdjustScale.y = parentAspectRation.y;
+		}
 
-        const glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size) * offsetAdjustScale;
-        const glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position * offsetAdjustScale, 0.0f), glm::radians(parentRotate));
-        glm::vec2 screenPosition = glm::vec2(rot.x, rot.y) + parentOffset + pivotOffset;
+		const glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size) * offsetAdjustScale;
+		const glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position * offsetAdjustScale, 0.0f), glm::radians(parentRotate));
+		glm::vec2 screenPosition = glm::vec2(rot.x, rot.y) + parentOffset + pivotOffset;
 
-        GUINodeScreen snode;
-        snode.hash = node.hash;
-        snode.adjustAspect = adjustScale;
-        snode.angle = node.base.angle + parentRotate;
-        snode.position = screenPosition;
-        snode.node = &node;
-        nodesFromScreen.push_back(snode);
+		GUINodeScreen snode;
+		snode.hash = node.hash;
+		snode.adjustAspect = adjustScale;
+		snode.angle = node.base.angle + parentRotate;
+		snode.screenPosition = screenPosition;
+		snode.node = &node;
+		nodesFromScreen.push_back(snode);
 
-        if (node.visable) {
-            int addVertexCount = 0;
-            if (node.generator.generator) {
-                addVertexCount = node.generator.generator(&vertexBuffer[vertexArrayOffset], &node.base, node.generator.userData);
-            }
+		if (node.visable) {
+			int addVertexCount = 0;
+			if (node.primitive.generator) {
+				addVertexCount = node.primitive.generator(&vertexBuffer[vertexArrayOffset], &node.base, node.primitive.userData);
+			}
 
-            const float radians = glm::radians(node.base.angle + parentRotate);
-            for (size_t i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
-                GUIVertex& vertex = vertexBuffer[i];
-                vertex.position.x *= adjustScale.x;
-                vertex.position.y *= adjustScale.y;
-                vertex.position.x += pivotOffset.x;
-                vertex.position.y += pivotOffset.y;
-                vertex.position = glm::rotateZ(vertex.position, radians);
-                vertex.position.x -= pivotOffset.x;
-                vertex.position.y -= pivotOffset.y;
-             
-                vertex.position += glm::vec3(screenPosition.x, screenPosition.y, 0.5f);
-            }
-            vertexArrayOffset += addVertexCount;
-        }
+			const float radians = glm::radians(node.base.angle + parentRotate);
+			for (size_t i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
+				GUIVertex& vertex = vertexBuffer[i];
+				vertex.position.x *= adjustScale.x;
+				vertex.position.y *= adjustScale.y;
+				vertex.position.x += pivotOffset.x;
+				vertex.position.y += pivotOffset.y;
+				vertex.position = glm::rotateZ(vertex.position, radians);
+				vertex.position.x -= pivotOffset.x;
+				vertex.position.y -= pivotOffset.y;
 
-        for (int i = 0; i < 10 && node.children[i] != nullptr; i++) {
-            composeScreen(*node.children[i], adjustScale, screenPosition - pivotOffset, node.base.angle + parentRotate);
-        }
-        return true;
+				vertex.position += glm::vec3(screenPosition.x, screenPosition.y, 0.5f);
+			}
+			vertexArrayOffset += addVertexCount;
+		}
+
+		for (int i = 0; i < 10 && node.children[i] != nullptr; i++) {
+			composeScreen(*node.children[i], adjustScale, screenPosition - pivotOffset, node.base.angle + parentRotate);
+		}
+		return true;
 	}
 
 
-    void GUIComposer::clearVertexBuffer() {
-        vertexArrayOffset = 0;
-        nodesFromScreen.clear();
-    }
+	void GUIComposer::clearVertexBuffer() {
+		vertexArrayOffset = 0;
+		nodesFromScreen.clear();
+	}
 
-    const uint8_t* GUIComposer::getBufferData() const {
-        return reinterpret_cast<uint8_t const*>(vertexBuffer);
-    }
+	const uint8_t* GUIComposer::getBufferData() const {
+		return reinterpret_cast<uint8_t const*>(vertexBuffer);
+	}
 
-    uint32_t GUIComposer::getVertexCount() const {
-        return vertexArrayOffset;
-    }
+	uint32_t GUIComposer::getVertexCount() const {
+		return vertexArrayOffset;
+	}
 
-    uint32_t GUIComposer::getRenderBufSizeof() {
-        return getVertexCount() *sizeof(GUIVertex);
-    }
+	uint32_t GUIComposer::getRenderBufSizeof() const {
+		return getVertexCount() * sizeof(GUIVertex);
+	}
 
-    uint32_t GUIComposer::pickNode(uint32_t hash, glm::vec2 pos) {
-        for (auto& node : nodesFromScreen) {
-            if (hash == node.hash) {
-                glm::vec2 localPos = (pos - node.position);
-                glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-node.angle));
-                return node.node->generator.input(rot.x / node.adjustAspect.x, rot.y / node.adjustAspect.y, &node.node->base, node.node->generator.userData);
-            }
-            //glm::vec2 result = 1.0f / node.adjustAspect;
-        }
-        return false;
-    }
+	uint32_t GUIComposer::pickNode(uint32_t hash, const glm::vec2& pos) {
+		for (auto& node : nodesFromScreen) {
+			if (hash != node.hash) {
+				continue;
+			}
+			glm::vec2 localPos = (pos - node.screenPosition);
+			glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-node.angle));
+			return node.node->primitive.input(rot.x / node.adjustAspect.x, rot.y / node.adjustAspect.y, &node.node->base, node.node->primitive.userData);
+		}
+		return false;
+	}
 
-    GUIVertex::GUIVertex(): position(0.0f, 0.0f, 0.0f), color(0.0f, 0.0f, 0.0f, 0.0f), texCoords(0.0f, 0.0f) {}
+	GUIVertex::GUIVertex() : position(0.0f, 0.0f, 0.0f), color(0.0f, 0.0f, 0.0f, 0.0f), texCoords(0.0f, 0.0f) {}
 
-    GUIVertex::GUIVertex(glm::vec3 position, glm::vec4 color, glm::vec2 texCoords): position(position), color(color), texCoords(texCoords){
-    }
+	GUIVertex::GUIVertex(glm::vec3 position, glm::vec4 color, glm::vec2 texCoords) : position(position), color(color), texCoords(texCoords) {}
 };

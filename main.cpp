@@ -209,8 +209,6 @@ int main(int argc, char* argv[]) {
     Engine::Box mainBox;
     mainBox.position = glm::vec3(0.0f, -2.2f, 0.0f);
     mainBox.size = glm::vec3(0.8f, 0.1f, 0.8f);
-    //mainBox.size = glm::vec3(0.8f, 0.4f, 0.8f);
-
 
     y_offset = mainBox.position.y + mainBox.size.y + 0.2f;
 
@@ -255,9 +253,9 @@ int main(int argc, char* argv[]) {
     testQuad2.children[1] = &text;
 
 
-    while (true) { // engine loop        
+    while (true) { // engine loop
         Engine::Box& select = boxes.back();
-        composer.clearVertexBuffer();
+
         if (select.position.x > 3.0f && moveByX) {
             dir = -1;
         }
@@ -319,7 +317,7 @@ int main(int argc, char* argv[]) {
         }
         main_graphics.endDraw();
         main_window.present();
-        
+        composer.clearVertexBuffer();
     }
     return 0;
 }
