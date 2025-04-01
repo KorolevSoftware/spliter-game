@@ -9,13 +9,13 @@ namespace Engine2 {
 		BilboardData(glm::vec2 textureCoord1, glm::vec2 textureCoord2) : textureCoord1(textureCoord1), textureCoord2(textureCoord2) {}
 	};
 
-	bool bilboard_input(int x, int y, const GUIBase* base, void* userData) {
+	bool bilboard_input(const glm::vec2& clickPosition, const GUIBase* base, void* userData) {
 		glm::vec2 dim = base->size / 2.0f;
 
-		if (-dim.x > x || dim.x < x)
+		if (-dim.x > clickPosition.x || dim.x < clickPosition.x)
 			return false;
 
-		if (-dim.y > y || dim.y < y)
+		if (-dim.y > clickPosition.y || dim.y < clickPosition.y)
 			return false;
 
 		int gg = 0;

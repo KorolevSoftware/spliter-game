@@ -42,14 +42,14 @@ namespace Engine2 {
 		vertexBuffer[5] = GUIVertex(position6 + position, color, textureCoord2);
 		return 6;
 	}
-	bool text_input(int x, int y, const GUIBase* base, void* userData) {
+
+	bool text_input(const glm::vec2& clickPosition, const GUIBase* base, void* userData) {
 		int gg = 0;
 		return false;
 	}
 
 	int generator_text(GUIVertex* vertexBuffer, const GUIBase* base, void* userData) {
 		TextData* textData = reinterpret_cast<TextData*>(userData);
-		glm::vec2 text_pos(0, 0);
 		int text_offset = 0;
 		int vertexAddCount = 0;
 		for (auto& ch : textData->text) {
@@ -60,15 +60,12 @@ namespace Engine2 {
 		for (auto& ch : textData->text) {
 			Rectangle r_ch = textData->font->glyphs[ch];
 
-			glm::vec2 textureCoord1 = glm::vec2(r_ch.x / 512.0f, r_ch.y / 512.0f);
-			glm::vec2 textureCoord2 = glm::vec2(textureCoord1.x + r_ch.w / 512.0f, textureCoord1.y + r_ch.h / 512.0f);
-			std::swap(textureCoord1, textureCoord2);
-			textureCoord1.y = 1.0f - textureCoord1.y;
-			textureCoord2.y = 1.0f - textureCoord2.y;
-			std::swap(textureCoord1.x, textureCoord2.x);
+			glm::vec4 normalize = glm::vec4(r_ch.x, r_ch.y, r_ch.w, r_ch.h) / 512.0f;
+			glm::vec2 textureCoord1 = glm::vec2(normalize.x, normalize.y);
+			glm::vec2 textureCoord2 = textureCoord1 + glm::vec2(normalize.z, normalize.w);
 
-			glm::vec3 position = glm::vec3(text_offset + text_pos.x, text_pos.y, 0);
-			glm::vec2 size = glm::vec2(r_ch.w, r_ch.h);
+			glm::vec3 position = glm::vec3(text_offset, 0, 0);
+			glm::vec2 size = glm::vec2(r_ch.w, -r_ch.h);
 			vertexAddCount += make_char(&vertexBuffer[vertexAddCount], glm::vec4(0.0f, 0.0f,0.0f, 1.0f), position, size, textureCoord1, textureCoord2);
 			text_offset += r_ch.w;
 		}
@@ -84,7 +81,7 @@ namespace Engine2 {
 		node.anchorY = false;
 		node.pivot = Engine2::GUIPivot::Centre;
 		node.base.color = glm::vec4(1, 0, 0, 1);
-		node.hash = 1111;
+		node.hash = 0;
 		for (size_t i = 0; i < 10; i++) {
 			node.children[i] = nullptr;
 		}

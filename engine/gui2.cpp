@@ -110,13 +110,12 @@ namespace Engine2 {
 		const glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position * offsetAdjustScale, 0.0f), glm::radians(parentRotate));
 		glm::vec2 screenPosition = glm::vec2(rot.x, rot.y) + parentOffset + pivotOffset;
 
-		GUINodeScreen snode;
-		snode.hash = node.hash;
-		snode.adjustAspect = adjustScale;
-		snode.angle = node.base.angle + parentRotate;
-		snode.screenPosition = screenPosition;
-		snode.node = &node;
-		nodesFromScreen.push_back(snode);
+		GUINodeScreen nodeScreen;
+		nodeScreen.adjustAspect = adjustScale;
+		nodeScreen.angle = node.base.angle + parentRotate;
+		nodeScreen.screenPosition = screenPosition;
+		nodeScreen.node = &node;
+		nodesFromScreen.push_back(nodeScreen);
 
 		if (node.visable) {
 			int addVertexCount = 0;
@@ -165,13 +164,14 @@ namespace Engine2 {
 	}
 
 	uint32_t GUIComposer::pickNode(uint32_t hash, const glm::vec2& pos) {
-		for (auto& node : nodesFromScreen) {
-			if (hash != node.hash) {
+		for (auto& nodeScreen : nodesFromScreen) {
+			if (hash != nodeScreen.node->hash) {
 				continue;
 			}
-			glm::vec2 localPos = (pos - node.screenPosition);
-			glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-node.angle));
-			return node.node->primitive.input(rot.x / node.adjustAspect.x, rot.y / node.adjustAspect.y, &node.node->base, node.node->primitive.userData);
+			glm::vec2 localPos = (pos - nodeScreen.screenPosition);
+			glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-nodeScreen.angle));
+			glm::vec2 result = glm::vec2(rot) / nodeScreen.adjustAspect;
+			return nodeScreen.node->primitive.input(result, &nodeScreen.node->base, nodeScreen.node->primitive.userData);
 		}
 		return false;
 	}

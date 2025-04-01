@@ -43,7 +43,7 @@ namespace Engine2 {
 	struct GUIPrimitive {
 		void* userData;
 		int (*generator)(GUIVertex* vertex, const GUIBase* base, void* userData);
-		bool (*input)(int x, int y, const GUIBase* base, void* userData);
+		bool (*input)(const glm::vec2& clickPosition, const GUIBase* base, void* userData);
 		void (*release)();
 	};
 
@@ -56,8 +56,8 @@ namespace Engine2 {
 
 		GUIBase base;
 		GUIPrimitive primitive;
-		GUINode* children[10];
 		bool visable = true;
+		GUINode* children[10];
 	};
 
 	struct GUIDrawCommand {
@@ -67,7 +67,6 @@ namespace Engine2 {
 	};
 
 	struct GUINodeScreen {
-		uint32_t hash;
 		const GUINode* node;
 		glm::vec2 adjustAspect;
 		glm::vec2 screenPosition;
