@@ -82,7 +82,7 @@ namespace Engine2 {
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;
 		uint32_t getRenderBufSizeof();
-		uint32_t pickNode(glm::vec2 pos);
+		uint32_t pickNode(uint32_t hash, glm::vec2 pos);
 		uint32_t vertexArrayOffset;
 
 	private:

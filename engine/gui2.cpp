@@ -164,26 +164,16 @@ namespace Engine2 {
         return getVertexCount() *sizeof(GUIVertex);
     }
 
-    uint32_t GUIComposer::pickNode(glm::vec2 pos) {
+    uint32_t GUIComposer::pickNode(uint32_t hash, glm::vec2 pos) {
         for (auto& node : nodesFromScreen) {
-            //glm::vec2 result = 1.0f / node.adjustAspect;
-            glm::vec2 localPos = (pos - node.position);
-            glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-node.angle));
-
-    
-
-            if (node.node->generator.input(rot.x /node.adjustAspect.x, rot.y / node.adjustAspect.y, &node.node->base, node.node->generator.userData)) {
-                return node.hash;
+            if (hash == node.hash) {
+                glm::vec2 localPos = (pos - node.position);
+                glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-node.angle));
+                return node.node->generator.input(rot.x / node.adjustAspect.x, rot.y / node.adjustAspect.y, &node.node->base, node.node->generator.userData);
             }
-            /*if (node.screen_p2.x > pos.x || pos.x > node.screen_p1.x)
-                continue;
-
-            if (node.screen_p2.y > pos.y || pos.y > node.screen_p1.y)
-                continue;*/
-
-           
+            //glm::vec2 result = 1.0f / node.adjustAspect;
         }
-        return 0;
+        return false;
     }
 
     GUIVertex::GUIVertex(): position(0.0f, 0.0f, 0.0f), color(0.0f, 0.0f, 0.0f, 0.0f), texCoords(0.0f, 0.0f) {}

@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
                 mouse_pos.y = wEvent.posY;
                 //spdlog::info("Click x: {} y:{}", wEvent.posX, wEvent.posY);
                 //spdlog::info("createBox");
-                if (1 == composer.pickNode(mouse_pos)) {
+                if (composer.pickNode(3, mouse_pos)) {
                     createBox();
                     spdlog::info("Hit");
                 }
