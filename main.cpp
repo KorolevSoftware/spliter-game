@@ -2,7 +2,6 @@
 #include "engine/graphics.h"
 #include <SDL_ttf.h>
 #include <SDL_surface.h>
-#include "engine/gui.h"
 #include "engine/gui2.h"
 #include "engine/gui_billboard.h"
 #include "engine/gui_text.h"
@@ -199,6 +198,7 @@ int main(int argc, char* argv[]) {
 	testQuad.base.angle = 0;
 	testQuad.adjustMod = Engine2::GUIAdjustMod::Stretch;
 	testQuad.hash = 1;
+	testQuad.base.scale = glm::vec2(0.5, 1);
 
 	testQuad2.base.size = glm::vec2(100);
 	testQuad2.base.position = glm::vec2(139.0, 0);
@@ -209,6 +209,7 @@ int main(int argc, char* argv[]) {
 	testQuad2.pivot = Engine2::GUIPivot::Centre;
 	testQuad2.children[0] = &testQuad3;
 	testQuad2.hash = 2;
+	testQuad2.base.scale = glm::vec2(0.5, 1);
 
 	testQuad3.base.size = glm::vec2(50);
 	testQuad3.base.angle = 0;
@@ -221,9 +222,10 @@ int main(int argc, char* argv[]) {
 	for (size_t i = 0; i < 255; i++) {
 		font.glyphs[i] = glyphs[i];
 	}
-	Engine2::GUINode text = Engine2::make_text("Helljgow", &font);
+	Engine2::GUINode text = Engine2::make_text("", &font);
 	text.base.angle = 0;
 	testQuad2.children[1] = &text;
+	//text.base.scale = glm::vec2(1);
 
 
 	while (true) { // engine loop

@@ -52,6 +52,12 @@ namespace Engine2 {
 		TextData* textData = reinterpret_cast<TextData*>(userData);
 		int text_offset = 0;
 		int vertexAddCount = 0;
+		float halfHeight = 0;
+		if(!textData->text.empty()) {
+			const char first = textData->text[0];
+			halfHeight = textData->font->glyphs[first].h / 2;
+		}
+		
 		for (auto& ch : textData->text) {
 			Rectangle r_ch = textData->font->glyphs[ch];
 			text_offset -= r_ch.w;
@@ -64,7 +70,7 @@ namespace Engine2 {
 			glm::vec2 textureCoord1 = glm::vec2(normalize.x, normalize.y);
 			glm::vec2 textureCoord2 = textureCoord1 + glm::vec2(normalize.z, normalize.w);
 
-			glm::vec3 position = glm::vec3(text_offset, 0, 0);
+			glm::vec3 position = glm::vec3(text_offset, halfHeight, 0);
 			glm::vec2 size = glm::vec2(r_ch.w, -r_ch.h);
 			vertexAddCount += make_char(&vertexBuffer[vertexAddCount], glm::vec4(0.0f, 0.0f,0.0f, 1.0f), position, size, textureCoord1, textureCoord2);
 			text_offset += r_ch.w;
@@ -82,6 +88,7 @@ namespace Engine2 {
 		node.pivot = Engine2::GUIPivot::Centre;
 		node.base.color = glm::vec4(1, 0, 0, 1);
 		node.hash = 0;
+		node.base.scale = glm::vec2(1);
 		for (size_t i = 0; i < 10; i++) {
 			node.children[i] = nullptr;
 		}

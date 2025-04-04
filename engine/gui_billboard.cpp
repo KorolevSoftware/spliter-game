@@ -64,6 +64,7 @@ namespace Engine2 {
 		node.pivot = Engine2::GUIPivot::Centre;
 		node.base.color = glm::vec4(1, 0, 0, 1);
 		node.hash = 1111;
+		node.base.scale = glm::vec2(1);
 		for (size_t i = 0; i < 10; i++) {
 			node.children[i] = nullptr;
 		}
