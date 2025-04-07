@@ -170,7 +170,7 @@ namespace Engine2 {
 			}
 			glm::vec2 localPos = (pos - nodeScreen.screenPosition);
 			glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-nodeScreen.angle));
-			glm::vec2 result = glm::vec2(rot) / nodeScreen.adjustAspect;
+			glm::vec2 result = glm::vec2(rot) / nodeScreen.adjustAspect / nodeScreen.scale;
 			return nodeScreen.node->primitive.input(result, &nodeScreen.node->base, nodeScreen.node->primitive.userData);
 		}
 		return false;
