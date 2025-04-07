@@ -5,6 +5,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
 #include "gui2.h"
+#include <spdlog/spdlog.h>
 
 namespace Engine2 {
 	GUIComposer::GUIComposer(uint32_t poolSize) {
@@ -107,7 +108,7 @@ namespace Engine2 {
 		}
 
 		const glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size) * offsetAdjustScale;
-		const glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position * offsetAdjustScale* parentScale, 0.0f), glm::radians(parentRotate));
+		const glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position * offsetAdjustScale* parentScale, 0.0f), parentRotate);
 		glm::vec2 screenPosition = glm::vec2(rot.x, rot.y) + parentOffset + pivotOffset;
 
 		GUINodeScreen nodeScreen;
@@ -115,6 +116,7 @@ namespace Engine2 {
 		nodeScreen.angle = node.base.angle + parentRotate;
 		nodeScreen.screenPosition = screenPosition;
 		nodeScreen.node = &node;
+		nodeScreen.scale = node.base.scale * parentScale;
 		nodesFromScreen.push_back(nodeScreen);
 
 		if (node.visable) {
@@ -123,16 +125,18 @@ namespace Engine2 {
 				addVertexCount = node.primitive.generator(&vertexBuffer[vertexArrayOffset], &node.base, node.primitive.userData);
 			}
 
-			const float radians = glm::radians(node.base.angle + parentRotate);
 			for (size_t i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
 				GUIVertex& vertex = vertexBuffer[i];
-				vertex.position.x *= adjustScale.x * node.base.scale.x * parentScale.x;
-				vertex.position.y *= adjustScale.y * node.base.scale.y * parentScale.y;
+				vertex.position.x *= adjustScale.x * node.base.scale.x;
+				vertex.position.y *= adjustScale.y * node.base.scale.y;
 				vertex.position.x += pivotOffset.x;
 				vertex.position.y += pivotOffset.y;
-				vertex.position = glm::rotateZ(vertex.position, radians);
+				vertex.position = glm::rotateZ(vertex.position, node.base.angle + parentRotate);
 				vertex.position.x -= pivotOffset.x;
 				vertex.position.y -= pivotOffset.y;
+
+				vertex.position.x *= parentScale.x;
+				vertex.position.y *= parentScale.y;
 
 				vertex.position += glm::vec3(screenPosition.x, screenPosition.y, 0.5f);
 			}
@@ -169,7 +173,7 @@ namespace Engine2 {
 				continue;
 			}
 			glm::vec2 localPos = (pos - nodeScreen.screenPosition);
-			glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), glm::radians(-nodeScreen.angle));
+			glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), -nodeScreen.angle);
 			glm::vec2 result = glm::vec2(rot) / nodeScreen.adjustAspect / nodeScreen.scale;
 			return nodeScreen.node->primitive.input(result, &nodeScreen.node->base, nodeScreen.node->primitive.userData);
 		}

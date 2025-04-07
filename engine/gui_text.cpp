@@ -44,24 +44,26 @@ namespace Engine2 {
 	}
 
 	bool text_input(const glm::vec2& clickPosition, const GUIBase* base, void* userData) {
-		int gg = 0;
 		return false;
 	}
 
 	int generator_text(GUIVertex* vertexBuffer, const GUIBase* base, void* userData) {
 		TextData* textData = reinterpret_cast<TextData*>(userData);
+
 		int text_offset = 0;
 		int vertexAddCount = 0;
 		float halfHeight = 0;
-		if(!textData->text.empty()) {
+
+		if (!textData->text.empty()) {
 			const char first = textData->text[0];
 			halfHeight = textData->font->glyphs[first].h / 2;
 		}
-		
+
 		for (auto& ch : textData->text) {
 			Rectangle r_ch = textData->font->glyphs[ch];
 			text_offset -= r_ch.w;
 		}
+
 		text_offset /= 2;
 		for (auto& ch : textData->text) {
 			Rectangle r_ch = textData->font->glyphs[ch];
@@ -72,7 +74,7 @@ namespace Engine2 {
 
 			glm::vec3 position = glm::vec3(text_offset, halfHeight, 0);
 			glm::vec2 size = glm::vec2(r_ch.w, -r_ch.h);
-			vertexAddCount += make_char(&vertexBuffer[vertexAddCount], glm::vec4(0.0f, 0.0f,0.0f, 1.0f), position, size, textureCoord1, textureCoord2);
+			vertexAddCount += make_char(&vertexBuffer[vertexAddCount], glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), position, size, textureCoord1, textureCoord2);
 			text_offset += r_ch.w;
 		}
 		return vertexAddCount;
@@ -89,9 +91,11 @@ namespace Engine2 {
 		node.base.color = glm::vec4(1, 0, 0, 1);
 		node.hash = 0;
 		node.base.scale = glm::vec2(1);
+
 		for (size_t i = 0; i < 10; i++) {
 			node.children[i] = nullptr;
 		}
+
 		node.primitive.generator = generator_text;
 		node.primitive.input = text_input;
 		node.primitive.userData = new TextData(text, font);

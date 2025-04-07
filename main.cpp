@@ -5,6 +5,7 @@
 #include "engine/gui2.h"
 #include "engine/gui_billboard.h"
 #include "engine/gui_text.h"
+#include <glm/trigonometric.hpp>
 
 void createBox();
 
@@ -195,7 +196,7 @@ int main(int argc, char* argv[]) {
 	Engine2::GUINode testQuad2 = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
 	Engine2::GUINode testQuad3 = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
 	testQuad.children[0] = &testQuad2;
-	testQuad.base.angle = 0;
+	testQuad.base.angle = glm::radians(20.0f);
 	testQuad.adjustMod = Engine2::GUIAdjustMod::Stretch;
 	testQuad.hash = 1;
 	testQuad.base.scale = glm::vec2(0.5, 1);
@@ -203,16 +204,16 @@ int main(int argc, char* argv[]) {
 	testQuad2.base.size = glm::vec2(100);
 	testQuad2.base.position = glm::vec2(139.0, 0);
 	testQuad2.base.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-	testQuad2.base.angle = 0;
+	testQuad2.base.angle = glm::radians(45.0f);
 	testQuad2.anchorX = true;
 	testQuad2.adjustMod = Engine2::GUIAdjustMod::Zoom;
 	testQuad2.pivot = Engine2::GUIPivot::Centre;
 	testQuad2.children[0] = &testQuad3;
 	testQuad2.hash = 2;
-	testQuad2.base.scale = glm::vec2(0.5, 1);
+	testQuad2.base.scale = glm::vec2(1, 1);
 
 	testQuad3.base.size = glm::vec2(50);
-	testQuad3.base.angle = 0;
+	testQuad3.base.angle = glm::radians(0.0f);
 	testQuad3.base.position = glm::vec2(-50, 0);
 	testQuad3.base.color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
 	testQuad3.hash = 3;
@@ -246,7 +247,7 @@ int main(int argc, char* argv[]) {
 		if (select.position.z < -3.0f && !moveByX) {
 			dir = 1;
 		}
-		//testQuad2.base.angle += 0.1;
+		testQuad2.base.angle += 0.01;
 		if (moveByX) {
 			select.position.x += dir * 0.016;
 		} else {
@@ -281,7 +282,7 @@ int main(int argc, char* argv[]) {
 		main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
 		{
 			// Draw gui
-			main_graphics.drawBoxes(boxes);
+			//main_graphics.drawBoxes(boxes);
 			main_graphics.setCameraOffsetY(y_offset_off);
 
 			// TODO fix gui

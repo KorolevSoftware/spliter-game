@@ -71,6 +71,7 @@ namespace Engine2 {
 		const GUINode* node;
 		glm::vec2 adjustAspect;
 		glm::vec2 screenPosition;
+		glm::vec2 scale;
 		float angle;
 	};
 
