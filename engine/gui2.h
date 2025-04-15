@@ -97,6 +97,7 @@ namespace Engine {
 		void setAnchorY(GUINodeID node, bool isEnable);
 		void setAnchorX(GUINodeID node, bool isEnable);
 		void setPivot(GUINodeID node, GUIPivot pivot);
+		void setHesh(GUINodeID node, uint32_t hash);
 
 	private:
 		uint32_t vertexArrayOffset;

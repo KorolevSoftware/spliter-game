@@ -1,4 +1,3 @@
-
 #include <glm/ext/scalar_common.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
@@ -200,6 +199,10 @@ namespace Engine {
 
 	void GUIComposer::setPivot(GUINodeID node, GUIPivot pivot) {
 		nodePoolBuffer[node].pivot = pivot;
+	}
+
+	void GUIComposer::setHesh(GUINodeID node, uint32_t hash) {
+		nodePoolBuffer[node].hash = hash;
 	}
 
 	GUIVertex::GUIVertex() : position(0.0f, 0.0f, 0.0f), color(0.0f, 0.0f, 0.0f, 0.0f), texCoords(0.0f, 0.0f) {}
