@@ -5,6 +5,8 @@
 
 
 namespace Engine {
+	GUINodeID GUINodeInvalidID = std::numeric_limits<GUINodeID>::max();
+
 	GUIComposer::GUIComposer(uint32_t vertexPoolSize, uint32_t nodePoolSize) {
 		vertexArrayOffset = 0;
 		vertexBuffer = new GUIVertex[vertexPoolSize];
@@ -105,12 +107,14 @@ namespace Engine {
 
 		nodeRef.invTransform = glm::scale(glm::vec3(1.0f / adjustScale, 1.0));
 
-		if (nodeRef.parent < 1000) {
+		if (nodeRef.parent != GUINodeInvalidID) {
 			const GUINode& nodeParent = nodePoolBuffer[nodeRef.parent];
 			nodeRef.localTransform = nodeParent.localTransform * nodeParent.invTransform * nodeRef.localTransform;
 		}
 
+
 		if (nodeRef.visable) {
+			[[likely]]
 			int addVertexCount = 0;
 			if (nodeRef.primitive.generator) {
 				addVertexCount = nodeRef.primitive.generator(&vertexBuffer[vertexArrayOffset], &nodeRef.base, nodeRef.primitive.userData);
@@ -205,11 +209,27 @@ namespace Engine {
 		nodePoolBuffer[node].hash = hash;
 	}
 
+	GUINodeID GUIComposer::findNode(uint32_t hash) {
+		auto result = std::find_if(std::begin(nodePoolBuffer), std::end(nodePoolBuffer), [hash](const GUINode& node) {
+			return node.hash == hash;
+			});
+
+		size_t index = std::distance(nodePoolBuffer.begin(), result);
+		if (index == nodePoolBuffer.size()) {
+			return GUINodeInvalidID;
+		}
+		return index;
+	}
+
+	bool GUIComposer::isValide(GUINodeID node) {
+		return node != GUINodeInvalidID;
+	}
+
 	GUIVertex::GUIVertex() : position(0.0f, 0.0f, 0.0f), color(0.0f, 0.0f, 0.0f, 0.0f), texCoords(0.0f, 0.0f) {}
 
 	GUIVertex::GUIVertex(glm::vec3 position, glm::vec4 color, glm::vec2 texCoords) : position(position), color(color), texCoords(texCoords) {}
 
-	GUINode::GUINode() : parent(1000) {
+	GUINode::GUINode() : parent(GUINodeInvalidID) {
 		this->base.size = glm::vec2(100.0f);
 		this->base.color = glm::vec4(1.0f);
 		this->scale = glm::vec3(1.0f);

@@ -74,7 +74,6 @@ namespace Engine {
 		uint32_t textureID;
 	};
 
-
 	struct GUIComposer final {
 		GUIComposer(uint32_t vertexPoolSize, uint32_t nodePoolSize);
 		void compose(GUINodeID node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
@@ -98,6 +97,8 @@ namespace Engine {
 		void setAnchorX(GUINodeID node, bool isEnable);
 		void setPivot(GUINodeID node, GUIPivot pivot);
 		void setHesh(GUINodeID node, uint32_t hash);
+		GUINodeID findNode(uint32_t hash);
+		bool isValide(GUINodeID node);
 
 	private:
 		uint32_t vertexArrayOffset;
