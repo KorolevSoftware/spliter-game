@@ -1,36 +1,35 @@
-#include <glm/vec2.hpp> // glm::vec2
-#include <glm/vec3.hpp> // glm::vec3
-#include <glm/vec4.hpp> // glm::vec4
+
 #include <glm/ext/scalar_common.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/rotate_vector.hpp>
 #include "gui2.h"
-#include <spdlog/spdlog.h>
 
-namespace Engine2 {
-	GUIComposer::GUIComposer(uint32_t poolSize) {
+
+namespace Engine {
+	GUIComposer::GUIComposer(uint32_t vertexPoolSize, uint32_t nodePoolSize) {
 		vertexArrayOffset = 0;
-		vertexBuffer = new GUIVertex[poolSize];
+		vertexBuffer = new GUIVertex[vertexPoolSize];
+		nodePoolBuffer.reserve(nodePoolSize);
 	}
 
-	glm::vec2 calculateAdjust(const glm::vec2& aspectRation, GUIAdjustMod adjust) {
+	glm::vec2 calculateAdjust(const glm::vec2& aspectRation, GUIAdjustMode adjust) {
 		float temp;
 		switch (adjust) {
-		case GUIAdjustMod::Fit:
+		case GUIAdjustMode::Fit:
 			temp = glm::fmin(aspectRation.x, aspectRation.y);
-			 return glm::vec2(temp);
+			return glm::vec2(temp);
 
-		case GUIAdjustMod::Zoom:
+		case GUIAdjustMode::Zoom:
 			temp = glm::fmax(aspectRation.x, aspectRation.y);
 			return glm::vec2(temp);
 
-		case GUIAdjustMod::Stretch:
+		case GUIAdjustMode::Stretch:
 			return aspectRation;
 		}
 	}
 
 	glm::vec2 calculatePivot(GUIPivot pivot, glm::vec2 nodeSize) {
-		glm::vec2 nodeOffset = glm::vec2(0, 0);
+		glm::vec2 nodeOffset = glm::vec2(0);
 		glm::vec2 drawDim = nodeSize * 0.5f;
 
 		switch (pivot) {
@@ -79,72 +78,59 @@ namespace Engine2 {
 		return nodeOffset;
 	}
 
-	bool GUIComposer::compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
+	bool GUIComposer::compose(GUINodeID node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
 		glm::vec2 aspectRation = actualResolution / localResolution;
-		glm::vec2 adjustScale = calculateAdjust(aspectRation, node.adjustMod);
-
-		if (node.anchorX) {
-			adjustScale.x = aspectRation.x;
-		}
-
-		if (node.anchorY) {
-			adjustScale.y = aspectRation.y;
-		}
-
-		glm::vec2 offset = (actualResolution - localResolution * adjustScale) * 0.5f; // left offset (is fit offset == 0)
-		return composeScreen(node, aspectRation, parentOffset + offset, 0, glm::vec2(1));
+		return composeScreen(node, aspectRation);
 	}
 
-	bool GUIComposer::composeScreen(const GUINode& node, const glm::vec2& parentAspectRation, const glm::vec2& parentOffset, const float parentRotate,const glm::vec2& parentScale) {
-		const glm::vec2 adjustScale = calculateAdjust(parentAspectRation, node.adjustMod);
+	bool GUIComposer::composeScreen(GUINodeID node, const glm::vec2& parentAspectRation) {
+		GUINode& nodeRef = nodePoolBuffer[node];
+		const glm::vec2 adjustScale = calculateAdjust(parentAspectRation, nodeRef.adjustMode);
 		glm::vec2 offsetAdjustScale = adjustScale;
 
-		if (node.anchorX) {
+		if (nodeRef.anchorX) {
 			offsetAdjustScale.x = parentAspectRation.x;
 		}
 
-		if (node.anchorY) {
+		if (nodeRef.anchorY) {
 			offsetAdjustScale.y = parentAspectRation.y;
 		}
 
-		const glm::vec2 pivotOffset = calculatePivot(node.pivot, node.base.size) * offsetAdjustScale;
-		const glm::vec3 rot = glm::rotateZ(glm::vec3(node.base.position * offsetAdjustScale* parentScale, 0.0f), parentRotate);
-		glm::vec2 screenPosition = glm::vec2(rot.x, rot.y) + parentOffset + pivotOffset;
+		const glm::vec2 pivotOffset = calculatePivot(nodeRef.pivot, nodeRef.base.size) * offsetAdjustScale;
+		//const glm::vec3 resultPosition = (pivotOffset + nodeRef.position);
+		nodeRef.localTransform =
+			glm::translate(glm::vec3(pivotOffset.x, pivotOffset.y, 0))
+			* glm::translate(glm::vec3(nodeRef.position.x * offsetAdjustScale.x, nodeRef.position.y * offsetAdjustScale.y, nodeRef.position.z))
+			* glm::rotate(nodeRef.angleZ, glm::vec3(0.0f, 0.0f, 1.0f))
+			* glm::scale(glm::vec3(adjustScale, 1.0))
+			* glm::scale(nodeRef.scale)
+			;
+		nodeRef.invTransform = glm::scale(glm::vec3(1.0f / adjustScale, 1.0));
 
-		GUINodeScreen nodeScreen;
-		nodeScreen.adjustAspect = adjustScale;
-		nodeScreen.angle = node.base.angle + parentRotate;
-		nodeScreen.screenPosition = screenPosition;
-		nodeScreen.node = &node;
-		nodeScreen.scale = node.base.scale * parentScale;
-		nodesFromScreen.push_back(nodeScreen);
+		if (nodeRef.parent < 1000) {
+			const GUINode& nodeParent = nodePoolBuffer[nodeRef.parent];
+			nodeRef.localTransform = nodeParent.localTransform * nodeParent.invTransform * nodeRef.localTransform;
+			nodeRef.invTransform = nodeRef.invTransform;
+		}
 
-		if (node.visable) {
+		if (nodeRef.visable) {
 			int addVertexCount = 0;
-			if (node.primitive.generator) {
-				addVertexCount = node.primitive.generator(&vertexBuffer[vertexArrayOffset], &node.base, node.primitive.userData);
+			if (nodeRef.primitive.generator) {
+				addVertexCount = nodeRef.primitive.generator(&vertexBuffer[vertexArrayOffset], &nodeRef.base, nodeRef.primitive.userData);
 			}
 
 			for (size_t i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
 				GUIVertex& vertex = vertexBuffer[i];
-				vertex.position.x *= adjustScale.x * node.base.scale.x;
-				vertex.position.y *= adjustScale.y * node.base.scale.y;
-				vertex.position.x += pivotOffset.x;
-				vertex.position.y += pivotOffset.y;
-				vertex.position = glm::rotateZ(vertex.position, node.base.angle + parentRotate);
-				vertex.position.x -= pivotOffset.x;
-				vertex.position.y -= pivotOffset.y;
-
-				vertex.position.x *= parentScale.x;
-				vertex.position.y *= parentScale.y;
-
-				vertex.position += glm::vec3(screenPosition.x, screenPosition.y, 0.5f);
+				glm::vec4 rPosition = nodeRef.localTransform * glm::vec4(vertex.position, 1.0);
+				vertex.position = rPosition;
+				vertex.position.z = 0.5;
 			}
 			vertexArrayOffset += addVertexCount;
 		}
 
-		for (int i = 0; i < 10 && node.children[i] != nullptr; i++) {
-			composeScreen(*node.children[i], adjustScale, screenPosition - pivotOffset, node.base.angle + parentRotate, node.base.scale* parentScale);
+
+		for (const GUINodeID& id : nodeRef.children) {
+			composeScreen(id, adjustScale);
 		}
 		return true;
 	}
@@ -152,7 +138,6 @@ namespace Engine2 {
 
 	void GUIComposer::clearVertexBuffer() {
 		vertexArrayOffset = 0;
-		nodesFromScreen.clear();
 	}
 
 	const uint8_t* GUIComposer::getBufferData() const {
@@ -165,22 +150,81 @@ namespace Engine2 {
 
 	uint32_t GUIComposer::getRenderBufSizeof() const {
 		return getVertexCount() * sizeof(GUIVertex);
+	} 
+	bool GUIComposer::pickNode(GUINodeID node, const glm::vec2& pos) {
+		const GUINode& nodeRef = nodePoolBuffer[node];
+		glm::mat4 inv = glm::inverse(nodeRef.localTransform);
+		glm::vec2 result = inv * glm::vec4(pos, 0.0f, 1.0f);
+		return nodeRef.primitive.input(result, &nodeRef.base, nodeRef.primitive.userData);
 	}
 
-	uint32_t GUIComposer::pickNode(uint32_t hash, const glm::vec2& pos) {
-		for (auto& nodeScreen : nodesFromScreen) {
-			if (hash != nodeScreen.node->hash) {
-				continue;
-			}
-			glm::vec2 localPos = (pos - nodeScreen.screenPosition);
-			glm::vec3 rot = glm::rotateZ(glm::vec3(localPos, 0.0f), -nodeScreen.angle);
-			glm::vec2 result = glm::vec2(rot) / nodeScreen.adjustAspect / nodeScreen.scale;
-			return nodeScreen.node->primitive.input(result, &nodeScreen.node->base, nodeScreen.node->primitive.userData);
-		}
-		return false;
+	GUINodeID GUIComposer::makeNode() {
+		nodePoolBuffer.emplace_back();
+		return nodePoolBuffer.size() - 1;
+	}
+
+	void GUIComposer::setAdjustMode(GUINodeID node, GUIAdjustMode mode) {
+		nodePoolBuffer[node].adjustMode = mode;
+	}
+
+	void GUIComposer::setPrimitive(GUIPrimitive primitive, GUINodeID node) {
+		nodePoolBuffer[node].primitive = primitive;
+	}
+
+	void GUIComposer::setScale(GUINodeID node, glm::vec3 scale) {
+		nodePoolBuffer[node].scale = scale;
+	}
+
+	void GUIComposer::setPosition(GUINodeID node, glm::vec3 position) {
+		nodePoolBuffer[node].position = glm::vec4(position, 1.0f);
+	}
+
+	void GUIComposer::setRotationZ(GUINodeID node, float angle) {
+		nodePoolBuffer[node].angleZ = angle;
+	}
+
+	void GUIComposer::setSize(GUINodeID node, glm::vec3 size) {
+		nodePoolBuffer[node].base.size = glm::vec2(size);
+	}
+
+	void GUIComposer::setColor(GUINodeID node, glm::vec4 color) {
+		nodePoolBuffer[node].base.color = color;
+	}
+
+	void GUIComposer::setChildren(GUINodeID parent, GUINodeID node) {
+		nodePoolBuffer[node].parent = parent;
+		nodePoolBuffer[parent].children.push_back(node);
+	}
+
+	void GUIComposer::setAnchorY(GUINodeID node, bool isEnable) {
+		nodePoolBuffer[node].anchorY = isEnable;
+	}
+
+	void GUIComposer::setAnchorX(GUINodeID node, bool isEnable) {
+		nodePoolBuffer[node].anchorX = isEnable;
+	}
+
+	void GUIComposer::setPivot(GUINodeID node, GUIPivot pivot) {
+		nodePoolBuffer[node].pivot = pivot;
 	}
 
 	GUIVertex::GUIVertex() : position(0.0f, 0.0f, 0.0f), color(0.0f, 0.0f, 0.0f, 0.0f), texCoords(0.0f, 0.0f) {}
 
 	GUIVertex::GUIVertex(glm::vec3 position, glm::vec4 color, glm::vec2 texCoords) : position(position), color(color), texCoords(texCoords) {}
+
+	GUINode::GUINode() : parent(1000) {
+		this->base.size = glm::vec2(100.0f);
+		this->base.color = glm::vec4(1.0f);
+		this->scale = glm::vec3(1.0f);
+		this->localTransform = glm::mat4(1.0f);
+		this->adjustMode = GUIAdjustMode::Fit;
+		this->anchorX = false;
+		this->anchorY = false;
+		this->hash = 0;
+		this->pivot = GUIPivot::Centre;
+		this->angleZ = 0;
+		this->invTransform = glm::mat4(1.0f);
+		this->position = glm::vec4(0);
+		this->primitive = {};
+	}
 };

@@ -1,7 +1,9 @@
 #include <glm/vec2.hpp> // glm::vec2
+#include <glm/vec3.hpp> // glm::vec2
+#include <glm/vec4.hpp> // glm::vec2
 #include "gui_text.h"
 #include "string"
-namespace Engine2 {
+namespace Engine {
 
 	struct TextData {
 		std::string text;
@@ -80,25 +82,14 @@ namespace Engine2 {
 		return vertexAddCount;
 	}
 
-	GUINode make_text(const std::string& text, Font* font) {
-		Engine2::GUINode node;
-		node.base.position = glm::vec2(0, 0);
-		node.base.size = glm::vec2(200.0, 100.0);
-		node.adjustMod = Engine2::GUIAdjustMod::Fit;
-		node.anchorX = false;
-		node.anchorY = false;
-		node.pivot = Engine2::GUIPivot::Centre;
-		node.base.color = glm::vec4(1, 0, 0, 1);
-		node.hash = 0;
-		node.base.scale = glm::vec2(1);
+	GUINodeID make_text(GUIComposer& composer, const std::string& text, Font* font) {
+		GUINodeID node = composer.makeNode();
+		GUIPrimitive primitive;
+		primitive.generator = generator_text;
+		primitive.input = text_input;
+		primitive.userData = new TextData(text, font);
+		composer.setPrimitive(primitive, node);
 
-		for (size_t i = 0; i < 10; i++) {
-			node.children[i] = nullptr;
-		}
-
-		node.primitive.generator = generator_text;
-		node.primitive.input = text_input;
-		node.primitive.userData = new TextData(text, font);
 		return node;
 	}
 };

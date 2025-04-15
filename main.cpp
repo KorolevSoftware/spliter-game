@@ -79,16 +79,16 @@ float lerp(float a, float b, float weight) {
 	return a * (1 - weight) + b * weight;
 }
 
-static Engine2::Rectangle glyphs[255];
+static Engine::Rectangle glyphs[255];
 
 
 SDL_Surface* initFont(char* filename) {
 	TTF_Init();
 	SDL_Surface* surface, * text;
-	Engine2::Rectangle dest;
+	Engine::Rectangle dest;
 	int i;
 	char c[2];
-	Engine2::Rectangle* g;
+	Engine::Rectangle* g;
 
 	int texture_size = 512;
 
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
 	Engine::Graphics main_graphics;
 	main_graphics.initialize();
 
-	Engine2::GUIComposer composer(4000);
+	Engine::GUIComposer composer(4000, 40);
 
 	std::vector<uint8_t> tex_image;
 	uint8_t depth;
@@ -192,43 +192,41 @@ int main(int argc, char* argv[]) {
 	main_graphics.setZoom(3);
 
 	//Engine::GUINode text = composeText("Hello world");
-	Engine2::GUINode testQuad = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
-	Engine2::GUINode testQuad2 = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
-	Engine2::GUINode testQuad3 = Engine2::make_billboard(glm::vec2(0, 0), glm::vec2(1, 1));
-	testQuad.children[0] = &testQuad2;
-	testQuad.base.angle = glm::radians(20.0f);
-	testQuad.adjustMod = Engine2::GUIAdjustMod::Stretch;
-	testQuad.hash = 1;
-	testQuad.base.scale = glm::vec2(0.5, 1);
+	Engine::GUINodeID testQuad = Engine::make_billboard(composer, glm::vec2(0, 0), glm::vec2(1, 1));
+	composer.setPosition(testQuad, glm::vec3(124.0, 834.0, 0));
+	composer.setSize(testQuad, glm::vec3(400.0, 200.0, 0));
+	composer.setScale(testQuad, glm::vec3(0.5f, 1.0f, 1.0f));
+	composer.setRotationZ(testQuad, glm::radians(45.0f));
+	composer.setColor(testQuad, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	composer.setAdjustMode(testQuad, Engine::GUIAdjustMode::Stretch);
 
-	testQuad2.base.size = glm::vec2(100);
-	testQuad2.base.position = glm::vec2(139.0, 0);
-	testQuad2.base.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-	testQuad2.base.angle = glm::radians(45.0f);
-	testQuad2.anchorX = true;
-	testQuad2.adjustMod = Engine2::GUIAdjustMod::Zoom;
-	testQuad2.pivot = Engine2::GUIPivot::Centre;
-	testQuad2.children[0] = &testQuad3;
-	testQuad2.hash = 2;
-	testQuad2.base.scale = glm::vec2(1, 1);
+	Engine::GUINodeID box5 = Engine::make_billboard(composer, glm::vec2(0, 0), glm::vec2(1, 1));
+	composer.setPosition(box5, glm::vec3(139.0f, 0, 0));
+	composer.setRotationZ(box5, glm::radians(45.0f));
+	composer.setSize(box5, glm::vec3(100.0, 100.0, 0));
+	composer.setScale(box5, glm::vec3(0.5, 1.0f, 1.0f));
+	composer.setColor(box5, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	composer.setChildren(testQuad, box5);
+	composer.setAnchorX(box5, true);
+	composer.setAdjustMode(box5, Engine::GUIAdjustMode::Zoom);
 
-	testQuad3.base.size = glm::vec2(50);
-	testQuad3.base.angle = glm::radians(0.0f);
-	testQuad3.base.position = glm::vec2(-50, 0);
-	testQuad3.base.color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-	testQuad3.hash = 3;
+	Engine::GUINodeID box6 = Engine::make_billboard(composer, glm::vec2(0, 0), glm::vec2(1, 1));
+	composer.setPosition(box6, glm::vec3(-50.0f, 0, 0));
+	composer.setSize(box6, glm::vec3(50.0f, 50.0, 0));
+	composer.setColor(box6, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	composer.setChildren(box5, box6);
+	composer.setAdjustMode(box6, Engine::GUIAdjustMode::Fit);
+	composer.setPivot(box6, Engine::GUIPivot::East);
 
-
-	Engine2::Font font;
+	Engine::Font font;
 	for (size_t i = 0; i < 255; i++) {
 		font.glyphs[i] = glyphs[i];
 	}
-	Engine2::GUINode text = Engine2::make_text("", &font);
-	text.base.angle = 0;
-	testQuad2.children[1] = &text;
-	//text.base.scale = glm::vec2(1);
 
+	Engine::GUINodeID box_text = Engine::make_text(composer, "Hello!", &font);
+	composer.setChildren(box5, box_text);
 
+	float angle = 0;
 	while (true) { // engine loop
 		Engine::Box& select = boxes.back();
 
@@ -247,7 +245,8 @@ int main(int argc, char* argv[]) {
 		if (select.position.z < -3.0f && !moveByX) {
 			dir = 1;
 		}
-		testQuad2.base.angle += 0.01;
+		angle += 1;
+		composer.setRotationZ(box5, glm::radians(angle));
 		if (moveByX) {
 			select.position.x += dir * 0.016;
 		} else {
@@ -272,7 +271,7 @@ int main(int argc, char* argv[]) {
 				mouse_pos.y = wEvent.posY;
 				//spdlog::info("Click x: {} y:{}", wEvent.posX, wEvent.posY);
 				//spdlog::info("createBox");
-				if (composer.pickNode(3, mouse_pos)) {
+				if (composer.pickNode(box6, mouse_pos)) {
 					createBox();
 					spdlog::info("Hit");
 				}

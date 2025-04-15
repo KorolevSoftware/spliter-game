@@ -1,12 +1,9 @@
 #pragma once
 #include "glm/fwd.hpp"
-#include <glm/vec2.hpp> // glm::vec2
-#include <glm/vec3.hpp> // glm::vec2
-#include <glm/vec4.hpp> // glm::vec2
+#include <glm/gtc/matrix_transform.hpp>
 #include <list>
-#include <vector>
 
-namespace Engine2 {
+namespace Engine {
 	enum class GUIPivot {
 		Centre,
 		North,
@@ -19,7 +16,7 @@ namespace Engine2 {
 		NorthWest,
 	};
 
-	enum class GUIAdjustMod {
+	enum class GUIAdjustMode {
 		Fit,
 		Zoom,
 		Stretch
@@ -35,10 +32,7 @@ namespace Engine2 {
 
 	struct GUIBase {
 		glm::vec2 size;
-		glm::vec2 position;
 		glm::vec4 color;
-		glm::vec2 scale;
-		float angle;
 	};
 
 	struct GUIPrimitive {
@@ -48,17 +42,29 @@ namespace Engine2 {
 		void (*release)();
 	};
 
+	using GUINodeID = uint32_t;
+
 	struct GUINode {
 		uint32_t hash;
 		GUIPivot pivot;
-		GUIAdjustMod adjustMod;
+		GUIAdjustMode adjustMode;
+
 		bool anchorY;
 		bool anchorX;
+
+		glm::vec4 position;
+		glm::vec3 scale;
+		float angleZ;
+		glm::mat4 localTransform;
+		glm::mat4 invTransform;
 
 		GUIBase base;
 		GUIPrimitive primitive;
 		bool visable = true;
-		GUINode* children[10];
+		GUINodeID parent;
+		std::list<GUINodeID> children;
+
+		GUINode();
 	};
 
 	struct GUIDrawCommand {
@@ -67,28 +73,34 @@ namespace Engine2 {
 		uint32_t textureID;
 	};
 
-	struct GUINodeScreen {
-		const GUINode* node;
-		glm::vec2 adjustAspect;
-		glm::vec2 screenPosition;
-		glm::vec2 scale;
-		float angle;
-	};
 
 	struct GUIComposer final {
-		GUIComposer(uint32_t poolSize);
-		bool compose(const GUINode& node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
-		bool composeScreen(const GUINode& node, const glm::vec2& aspectRation, const glm::vec2& parentOffset, const float parentRotate, const glm::vec2& parentScale);
+		GUIComposer(uint32_t vertexPoolSize, uint32_t nodePoolSize);
+		bool compose(GUINodeID node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
+		bool composeScreen(GUINodeID node, const glm::vec2& aspectRation);
 		void clearVertexBuffer();
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;
 		uint32_t getRenderBufSizeof() const;
-		uint32_t pickNode(uint32_t hash, const glm::vec2& pos);
-		uint32_t vertexArrayOffset;
+		bool pickNode(GUINodeID node, const glm::vec2& pos);
+		
+		GUINodeID makeNode();
+		void setAdjustMode(GUINodeID node, GUIAdjustMode mode);
+		void setPrimitive(GUIPrimitive primitive, GUINodeID node);
+		void setScale(GUINodeID node, glm::vec3 scale);
+		void setPosition(GUINodeID node, glm::vec3 position);
+		void setRotationZ(GUINodeID node, float angle);
+		void setSize(GUINodeID node, glm::vec3 size);
+		void setColor(GUINodeID node, glm::vec4 color);
+		void setChildren(GUINodeID parent, GUINodeID node);
+		void setAnchorY(GUINodeID node, bool isEnable);
+		void setAnchorX(GUINodeID node, bool isEnable);
+		void setPivot(GUINodeID node, GUIPivot pivot);
 
 	private:
-		std::list<GUINodeScreen> nodesFromScreen;
+		uint32_t vertexArrayOffset;
 		GUIVertex* vertexBuffer;
+		std::vector<GUINode> nodePoolBuffer;
 		std::vector<GUIDrawCommand> commandBuffer;
 	};
 };

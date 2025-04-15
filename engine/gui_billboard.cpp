@@ -1,7 +1,9 @@
 #include <glm/vec2.hpp> // glm::vec2
+#include <glm/vec3.hpp> // glm::vec2
+#include <glm/vec4.hpp> // glm::vec2
 #include "gui_billboard.h"
 
-namespace Engine2 {
+namespace Engine {
 
 	struct BilboardData {
 		glm::vec2 textureCoord1;
@@ -44,33 +46,40 @@ namespace Engine2 {
 		glm::vec3 position5(-dim.x, dim.y, 0.0f); // 2
 		glm::vec3 position6(dim.x, dim.y, 0.0f); // 3
 
-		vertexBuffer[0] = GUIVertex(position1, base->color, bilboard->textureCoord1);
-		vertexBuffer[1] = GUIVertex(position2, base->color, glm::vec2(bilboard->textureCoord1.x, bilboard->textureCoord2.y));
-		vertexBuffer[2] = GUIVertex(position3, base->color, glm::vec2(bilboard->textureCoord2.x, bilboard->textureCoord1.y));
-											  
-		vertexBuffer[3] = GUIVertex(position3, base->color, glm::vec2(bilboard->textureCoord2.x, bilboard->textureCoord1.y));
-		vertexBuffer[4] = GUIVertex(position5, base->color, glm::vec2(bilboard->textureCoord1.x, bilboard->textureCoord2.y));
-		vertexBuffer[5] = GUIVertex(position6, base->color, bilboard->textureCoord2);
+		glm::vec2 textCoord3 = glm::vec2(bilboard->textureCoord1.x, bilboard->textureCoord2.y);
+		glm::vec2 textCoord4 = glm::vec2(bilboard->textureCoord2.x, bilboard->textureCoord1.y);
+
+		for(auto i = 0; i < 6; i++) {
+			vertexBuffer[i].color = base->color;
+		}
+		vertexBuffer[0].position = position1;
+		vertexBuffer[0].texCoords = bilboard->textureCoord1;
+
+		vertexBuffer[1].position = position2;
+		vertexBuffer[1].texCoords = textCoord3;
+
+		vertexBuffer[2].position = position3;
+		vertexBuffer[2].texCoords = textCoord4;
+
+		vertexBuffer[3].position = position4;
+		vertexBuffer[3].texCoords = textCoord4;
+
+		vertexBuffer[4].position = position5;
+		vertexBuffer[4].texCoords = textCoord3;
+
+		vertexBuffer[5].position = position6;
+		vertexBuffer[5].texCoords = bilboard->textureCoord2;
 		return 6;
 	}
 
-	GUINode make_billboard(const glm::vec2& textureCoord1, const glm::vec2& textureCoord2) {
-		Engine2::GUINode node;
-		node.base.position = glm::vec2(124.0, 834.0);
-		node.base.size = glm::vec2(400.0, 200.0);
-		node.adjustMod = Engine2::GUIAdjustMod::Fit;
-		node.anchorX = false;
-		node.anchorY = false;
-		node.pivot = Engine2::GUIPivot::Centre;
-		node.base.color = glm::vec4(1, 0, 0, 1);
-		node.hash = 1111;
-		node.base.scale = glm::vec2(1);
-		for (size_t i = 0; i < 10; i++) {
-			node.children[i] = nullptr;
-		}
-		node.primitive.generator = generator;
-		node.primitive.input = bilboard_input;
-		node.primitive.userData = new BilboardData(textureCoord1, textureCoord2);
+	GUINodeID make_billboard(GUIComposer& composer, const glm::vec2& textureCoord1, const glm::vec2& textureCoord2) {
+		GUINodeID node = composer.makeNode();
+		GUIPrimitive primitive;
+		primitive.generator = generator;
+		primitive.input = bilboard_input;
+		primitive.userData = new BilboardData(textureCoord1, textureCoord2);
+		composer.setPrimitive(primitive, node);
+
 		return node;
 	}
 }; 

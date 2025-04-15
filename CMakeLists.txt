@@ -27,8 +27,6 @@ set(ENGINE
 	window.h
 	graphics.cpp
 	graphics.h
-	gui.cpp
-	gui.h
         gui2.cpp
 	gui2.h
 	gui_billboard.h

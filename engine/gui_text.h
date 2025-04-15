@@ -3,12 +3,12 @@
 #include <string>
 #include <glm/vec2.hpp> // glm::vec2
 
-namespace Engine2 {
+namespace Engine {
 	struct Rectangle {
 		int x, y, w, h;
 	};
 	struct Font {
 		Rectangle glyphs[255];
 	};
-	GUINode make_text(const std::string& text, Font* font);
+	GUINodeID make_text(GUIComposer& composer, const std::string& text, Font* font);
 };
