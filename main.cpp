@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
 			dir = 1;
 		}
 		angle += 1;
-		composer.setRotationZ(box5, glm::radians(angle));
+		//composer.setRotationZ(box5, glm::radians(angle));
 		if (moveByX) {
 			select.position.x += dir * 0.016;
 		} else {

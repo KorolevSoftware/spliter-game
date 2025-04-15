@@ -51,8 +51,9 @@ namespace Engine {
 
 		bool anchorY;
 		bool anchorX;
+		bool visable = true;
 
-		glm::vec4 position;
+		glm::vec3 position;
 		glm::vec3 scale;
 		float angleZ;
 		glm::mat4 localTransform;
@@ -60,7 +61,7 @@ namespace Engine {
 
 		GUIBase base;
 		GUIPrimitive primitive;
-		bool visable = true;
+		
 		GUINodeID parent;
 		std::list<GUINodeID> children;
 
@@ -76,8 +77,8 @@ namespace Engine {
 
 	struct GUIComposer final {
 		GUIComposer(uint32_t vertexPoolSize, uint32_t nodePoolSize);
-		bool compose(GUINodeID node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
-		bool composeScreen(GUINodeID node, const glm::vec2& aspectRation);
+		void compose(GUINodeID node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
+		void composeScreen(GUINodeID node, const glm::vec2& aspectRation);
 		void clearVertexBuffer();
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;

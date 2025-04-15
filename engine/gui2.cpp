@@ -28,8 +28,8 @@ namespace Engine {
 		}
 	}
 
-	glm::vec2 calculatePivot(GUIPivot pivot, glm::vec2 nodeSize) {
-		glm::vec2 nodeOffset = glm::vec2(0);
+	glm::vec3 calculatePivot(GUIPivot pivot, const glm::vec2& nodeSize) {
+		glm::vec3 nodeOffset = glm::vec3(0);
 		glm::vec2 drawDim = nodeSize * 0.5f;
 
 		switch (pivot) {
@@ -78,12 +78,12 @@ namespace Engine {
 		return nodeOffset;
 	}
 
-	bool GUIComposer::compose(GUINodeID node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
+	void GUIComposer::compose(GUINodeID node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset) {
 		glm::vec2 aspectRation = actualResolution / localResolution;
 		return composeScreen(node, aspectRation);
 	}
 
-	bool GUIComposer::composeScreen(GUINodeID node, const glm::vec2& parentAspectRation) {
+	void GUIComposer::composeScreen(GUINodeID node, const glm::vec2& parentAspectRation) {
 		GUINode& nodeRef = nodePoolBuffer[node];
 		const glm::vec2 adjustScale = calculateAdjust(parentAspectRation, nodeRef.adjustMode);
 		glm::vec2 offsetAdjustScale = adjustScale;
@@ -96,21 +96,19 @@ namespace Engine {
 			offsetAdjustScale.y = parentAspectRation.y;
 		}
 
-		const glm::vec2 pivotOffset = calculatePivot(nodeRef.pivot, nodeRef.base.size) * offsetAdjustScale;
-		//const glm::vec3 resultPosition = (pivotOffset + nodeRef.position);
+		const glm::vec3 pivotOffset = calculatePivot(nodeRef.pivot, nodeRef.base.size);
+		const glm::vec3 resultPosition = (pivotOffset + nodeRef.position) * glm::vec3(offsetAdjustScale, 1.0f);
+		const glm::vec3 resultScale = nodeRef.scale * glm::vec3(adjustScale, 1.0);
 		nodeRef.localTransform =
-			glm::translate(glm::vec3(pivotOffset.x, pivotOffset.y, 0))
-			* glm::translate(glm::vec3(nodeRef.position.x * offsetAdjustScale.x, nodeRef.position.y * offsetAdjustScale.y, nodeRef.position.z))
+			glm::translate(resultPosition)
 			* glm::rotate(nodeRef.angleZ, glm::vec3(0.0f, 0.0f, 1.0f))
-			* glm::scale(glm::vec3(adjustScale, 1.0))
-			* glm::scale(nodeRef.scale)
-			;
+			* glm::scale(resultScale);
+
 		nodeRef.invTransform = glm::scale(glm::vec3(1.0f / adjustScale, 1.0));
 
 		if (nodeRef.parent < 1000) {
 			const GUINode& nodeParent = nodePoolBuffer[nodeRef.parent];
 			nodeRef.localTransform = nodeParent.localTransform * nodeParent.invTransform * nodeRef.localTransform;
-			nodeRef.invTransform = nodeRef.invTransform;
 		}
 
 		if (nodeRef.visable) {
@@ -119,20 +117,16 @@ namespace Engine {
 				addVertexCount = nodeRef.primitive.generator(&vertexBuffer[vertexArrayOffset], &nodeRef.base, nodeRef.primitive.userData);
 			}
 
-			for (size_t i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
+			for (auto i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
 				GUIVertex& vertex = vertexBuffer[i];
-				glm::vec4 rPosition = nodeRef.localTransform * glm::vec4(vertex.position, 1.0);
-				vertex.position = rPosition;
-				vertex.position.z = 0.5;
+				vertex.position = nodeRef.localTransform * glm::vec4(vertex.position, 1.0);
 			}
 			vertexArrayOffset += addVertexCount;
 		}
 
-
 		for (const GUINodeID& id : nodeRef.children) {
 			composeScreen(id, adjustScale);
 		}
-		return true;
 	}
 
 
@@ -150,12 +144,12 @@ namespace Engine {
 
 	uint32_t GUIComposer::getRenderBufSizeof() const {
 		return getVertexCount() * sizeof(GUIVertex);
-	} 
+	}
 	bool GUIComposer::pickNode(GUINodeID node, const glm::vec2& pos) {
 		const GUINode& nodeRef = nodePoolBuffer[node];
 		glm::mat4 inv = glm::inverse(nodeRef.localTransform);
-		glm::vec2 result = inv * glm::vec4(pos, 0.0f, 1.0f);
-		return nodeRef.primitive.input(result, &nodeRef.base, nodeRef.primitive.userData);
+		glm::vec2 localPosition = inv * glm::vec4(pos, 0.0f, 1.0f);
+		return nodeRef.primitive.input(localPosition, &nodeRef.base, nodeRef.primitive.userData);
 	}
 
 	GUINodeID GUIComposer::makeNode() {
