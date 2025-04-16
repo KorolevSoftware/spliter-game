@@ -82,7 +82,7 @@ namespace Engine {
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;
 		uint32_t getRenderBufSizeof() const;
-		bool pickNode(GUINodeID node, const glm::vec2& pos);
+		bool pickNode(GUINodeID node, const glm::vec2& pos) const;
 		
 		GUINodeID makeNode();
 		void setAdjustMode(GUINodeID node, GUIAdjustMode mode);
@@ -90,15 +90,15 @@ namespace Engine {
 		void setScale(GUINodeID node, glm::vec3 scale);
 		void setPosition(GUINodeID node, glm::vec3 position);
 		void setRotationZ(GUINodeID node, float angle);
-		void setSize(GUINodeID node, glm::vec3 size);
+		void setSize(GUINodeID node, glm::vec2 size);
 		void setColor(GUINodeID node, glm::vec4 color);
 		void setChildren(GUINodeID parent, GUINodeID node);
 		void setAnchorY(GUINodeID node, bool isEnable);
 		void setAnchorX(GUINodeID node, bool isEnable);
 		void setPivot(GUINodeID node, GUIPivot pivot);
 		void setHesh(GUINodeID node, uint32_t hash);
-		GUINodeID findNode(uint32_t hash);
-		bool isValide(GUINodeID node);
+		GUINodeID findNode(uint32_t hash) const;
+		bool isValide(GUINodeID node) const;
 
 	private:
 		uint32_t vertexArrayOffset;

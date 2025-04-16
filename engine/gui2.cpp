@@ -148,7 +148,7 @@ namespace Engine {
 	uint32_t GUIComposer::getRenderBufSizeof() const {
 		return getVertexCount() * sizeof(GUIVertex);
 	}
-	bool GUIComposer::pickNode(GUINodeID node, const glm::vec2& pos) {
+	bool GUIComposer::pickNode(GUINodeID node, const glm::vec2& pos) const {
 		const GUINode& nodeRef = nodePoolBuffer[node];
 		glm::mat4 inv = glm::inverse(nodeRef.localTransform);
 		glm::vec2 localPosition = inv * glm::vec4(pos, 0.0f, 1.0f);
@@ -173,15 +173,15 @@ namespace Engine {
 	}
 
 	void GUIComposer::setPosition(GUINodeID node, glm::vec3 position) {
-		nodePoolBuffer[node].position = glm::vec4(position, 1.0f);
+		nodePoolBuffer[node].position = position;
 	}
 
 	void GUIComposer::setRotationZ(GUINodeID node, float angle) {
 		nodePoolBuffer[node].angleZ = angle;
 	}
 
-	void GUIComposer::setSize(GUINodeID node, glm::vec3 size) {
-		nodePoolBuffer[node].base.size = glm::vec2(size);
+	void GUIComposer::setSize(GUINodeID node, glm::vec2 size) {
+		nodePoolBuffer[node].base.size = size;
 	}
 
 	void GUIComposer::setColor(GUINodeID node, glm::vec4 color) {
@@ -209,7 +209,7 @@ namespace Engine {
 		nodePoolBuffer[node].hash = hash;
 	}
 
-	GUINodeID GUIComposer::findNode(uint32_t hash) {
+	GUINodeID GUIComposer::findNode(uint32_t hash) const {
 		auto result = std::find_if(std::begin(nodePoolBuffer), std::end(nodePoolBuffer), [hash](const GUINode& node) {
 			return node.hash == hash;
 			});
@@ -221,7 +221,7 @@ namespace Engine {
 		return index;
 	}
 
-	bool GUIComposer::isValide(GUINodeID node) {
+	bool GUIComposer::isValide(GUINodeID node) const {
 		return node != GUINodeInvalidID;
 	}
 

@@ -56,10 +56,13 @@ namespace Engine {
 		int vertexAddCount = 0;
 		float halfHeight = 0;
 
-		if (!textData->text.empty()) {
-			const char first = textData->text[0];
-			halfHeight = textData->font->glyphs[first].h / 2;
+		if (textData->text.empty()) {
+			return 0;
+
 		}
+		const char first = textData->text[0];
+		halfHeight = textData->font->glyphs[first].h / 2;
+
 
 		for (auto& ch : textData->text) {
 			Rectangle r_ch = textData->font->glyphs[ch];
