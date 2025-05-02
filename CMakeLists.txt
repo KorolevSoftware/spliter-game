@@ -33,6 +33,7 @@ set(ENGINE
 	gui_billboard.cpp
         gui_text.cpp
         gui_text.h
+    gui_math.h
 )
 
 add_subdirectory(dependency/SDL2Image)

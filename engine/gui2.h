@@ -1,9 +1,15 @@
 #pragma once
-#include "glm/fwd.hpp"
-#include <glm/gtc/matrix_transform.hpp>
 #include <list>
+#include "gui_math.h"
+#include <vector>
 
 namespace Engine {
+	float radians(float angle);
+	using vec2 = vec<2, float>;
+	using vec3 = vec<3, float>;
+	using vec4 = vec<4, float>;
+	using mat4 = mat<4, float>;
+
 	enum class GUIPivot {
 		Centre,
 		North,
@@ -23,22 +29,22 @@ namespace Engine {
 	};
 
 	struct GUIVertex {
-		glm::vec3 position;
-		glm::vec4 color;
-		glm::vec2 texCoords;
+		vec3 position;
+		vec4 color;
+		vec2 texCoords;
 		GUIVertex();
-		GUIVertex(glm::vec3 position, glm::vec4 color, glm::vec2 texCoords);
+		GUIVertex(vec3 position, vec4 color, vec2 texCoords);
 	};
 
 	struct GUIBase {
-		glm::vec2 size;
-		glm::vec4 color;
+		vec2 size;
+		vec4 color;
 	};
 
 	struct GUIPrimitive {
 		void* userData;
 		int (*generator)(GUIVertex* vertex, const GUIBase* base, void* userData);
-		bool (*input)(const glm::vec2& clickPosition, const GUIBase* base, void* userData);
+		bool (*input)(const vec2& clickPosition, const GUIBase* base, void* userData);
 		void (*release)();
 	};
 
@@ -53,11 +59,11 @@ namespace Engine {
 		bool anchorX;
 		bool visable = true;
 
-		glm::vec3 position;
-		glm::vec3 scale;
+		vec3 position;
+		vec3 scale;
 		float angleZ;
-		glm::mat4 localTransform;
-		glm::mat4 invTransform;
+		mat4 localTransform;
+		vec2 invAdjustScale;
 
 		GUIBase base;
 		GUIPrimitive primitive;
@@ -76,22 +82,22 @@ namespace Engine {
 
 	struct GUIComposer final {
 		GUIComposer(uint32_t vertexPoolSize, uint32_t nodePoolSize);
-		void compose(GUINodeID node, const glm::vec2& localResolution, const glm::vec2& actualResolution, const glm::vec2& parentOffset);
-		void composeScreen(GUINodeID node, const glm::vec2& aspectRation);
+		void compose(GUINodeID node, const vec2& localResolution, const vec2& actualResolution, const vec2& parentOffset);
+		void composeScreen(GUINodeID node, const vec2& aspectRation);
 		void clearVertexBuffer();
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;
 		uint32_t getRenderBufSizeof() const;
-		bool pickNode(GUINodeID node, const glm::vec2& pos) const;
+		bool pickNode(GUINodeID node, const vec2& pos) const;
 		
 		GUINodeID makeNode();
 		void setAdjustMode(GUINodeID node, GUIAdjustMode mode);
 		void setPrimitive(GUIPrimitive primitive, GUINodeID node);
-		void setScale(GUINodeID node, glm::vec3 scale);
-		void setPosition(GUINodeID node, glm::vec3 position);
+		void setScale(GUINodeID node, vec3 scale);
+		void setPosition(GUINodeID node, vec3 position);
 		void setRotationZ(GUINodeID node, float angle);
-		void setSize(GUINodeID node, glm::vec2 size);
-		void setColor(GUINodeID node, glm::vec4 color);
+		void setSize(GUINodeID node, vec2 size);
+		void setColor(GUINodeID node, vec4 color);
 		void setChildren(GUINodeID parent, GUINodeID node);
 		void setAnchorY(GUINodeID node, bool isEnable);
 		void setAnchorX(GUINodeID node, bool isEnable);

@@ -9,14 +9,13 @@
 
 void createBox();
 
-glm::vec2 mouse_pos;
+Engine::vec2 mouse_pos;
 bool pick = false;
 bool osEvents(Engine::Window& window) {
-
 	return true;
 }
 
-glm::vec2 localResolution = glm::vec2(600, 1200);
+Engine::vec2 localResolution = Engine::vec2(600.0f, 1200.0f);
 
 float y_offset = 10;
 float y_offset_off = 0;
@@ -176,6 +175,8 @@ int main(int argc, char* argv[]) {
 	width = img->w;
 	height = img->h;
 
+	glm::vec3(glm::vec2(1, 2), 1);
+
 	//main_window.loadImage("cat.png", tex_image, depth, width, height);
 	main_graphics.setImage(tex_image, width, height, depth);
 
@@ -192,28 +193,28 @@ int main(int argc, char* argv[]) {
 	main_graphics.setZoom(3);
 
 	//Engine::GUINode text = composeText("Hello world");
-	Engine::GUINodeID testQuad = Engine::make_billboard(composer, glm::vec2(0, 0), glm::vec2(1, 1));
-	composer.setPosition(testQuad, glm::vec3(124.0, 834.0, 0));
-	composer.setSize(testQuad, glm::vec3(400.0, 200.0, 0));
-	composer.setScale(testQuad, glm::vec3(0.5f, 1.0f, 1.0f));
-	composer.setRotationZ(testQuad, glm::radians(45.0f));
-	composer.setColor(testQuad, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	Engine::GUINodeID testQuad = Engine::make_billboard(composer, Engine::vec2(0.0f, 0.0f), Engine::vec2(1.0f, 1.0f));
+	composer.setPosition(testQuad, Engine::vec3(124.0, 834.0, 0));
+	composer.setSize(testQuad, Engine::vec2(400.0f, 200.0f));
+	composer.setScale(testQuad, Engine::vec3(0.5f, 1.0f, 1.0f));
+	composer.setRotationZ(testQuad, Engine::radians(45.0f));
+	composer.setColor(testQuad, Engine::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	composer.setAdjustMode(testQuad, Engine::GUIAdjustMode::Stretch);
 
-	Engine::GUINodeID box5 = Engine::make_billboard(composer, glm::vec2(0, 0), glm::vec2(1, 1));
-	composer.setPosition(box5, glm::vec3(139.0f, 0, 0));
-	composer.setRotationZ(box5, glm::radians(45.0f));
-	composer.setSize(box5, glm::vec3(100.0, 100.0, 0));
-	composer.setScale(box5, glm::vec3(0.5, 1.0f, 1.0f));
-	composer.setColor(box5, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	Engine::GUINodeID box5 = Engine::make_billboard(composer, Engine::vec2(0.0f, 0.0f), Engine::vec2(1.0f, 1.0f));
+	composer.setPosition(box5, Engine::vec3(139.0f, 0, 0));
+	composer.setRotationZ(box5, Engine::radians(45.0f));
+	composer.setSize(box5, Engine::vec2(100.0, 100.0));
+	composer.setScale(box5, Engine::vec3(0.5, 1.0f, 1.0f));
+	composer.setColor(box5, Engine::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	composer.setChildren(testQuad, box5);
 	composer.setAnchorX(box5, true);
 	composer.setAdjustMode(box5, Engine::GUIAdjustMode::Zoom);
 
-	Engine::GUINodeID box6 = Engine::make_billboard(composer, glm::vec2(0, 0), glm::vec2(1, 1));
-	composer.setPosition(box6, glm::vec3(-50.0f, 0, 0));
-	composer.setSize(box6, glm::vec3(50.0f, 50.0, 0));
-	composer.setColor(box6, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	Engine::GUINodeID box6 = Engine::make_billboard(composer, Engine::vec2(0.0f, 0.0f), Engine::vec2(1.0f, 1.0f));
+	composer.setPosition(box6, Engine::vec3(-50.0f, 0, 0));
+	composer.setSize(box6, Engine::vec2(50.0f, 50.0));
+	composer.setColor(box6, Engine::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 	composer.setChildren(box5, box6);
 	composer.setAdjustMode(box6, Engine::GUIAdjustMode::Fit);
 	composer.setPivot(box6, Engine::GUIPivot::East);
@@ -246,7 +247,7 @@ int main(int argc, char* argv[]) {
 			dir = 1;
 		}
 		angle += 1;
-		//composer.setRotationZ(box5, glm::radians(angle));
+		composer.setRotationZ(box5, Engine::radians(angle));
 		if (moveByX) {
 			select.position.x += dir * 0.016;
 		} else {
@@ -258,8 +259,8 @@ int main(int argc, char* argv[]) {
 		}
 		y_offset_off = lerp(y_offset_off, y_offset, 0.016);
 
-		glm::vec2 screenResolution = glm::vec2((float)main_window.getWidth(), (float)main_window.getHeight());
-		glm::vec2 vec2Zero(0);
+		Engine::vec2 screenResolution((float)main_window.getWidth(), (float)main_window.getHeight());
+		Engine::vec2 vec2Zero(0.0f);
 
 		composer.compose(testQuad, localResolution, screenResolution, vec2Zero);
 		// INPUT
@@ -277,7 +278,6 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
-		//testQuad2.base.angle = testQuad2.base.angle + 0.1;
 		main_graphics.beginDraw(main_window.getWidth(), main_window.getHeight());
 		{
 			// Draw gui
