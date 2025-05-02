@@ -7,10 +7,6 @@ namespace Engine {
 		vertexArrayOffset = 0;
 		vertexBuffer = new GUIVertex[vertexPoolSize];
 		nodePoolBuffer.reserve(nodePoolSize);
-
-		vec4 sdfsdf(1, 0, 0, 1);
-		mat4 translatem = translation(0.0f, 10.f,0.0f) * scaling(5.0f, 5.0f,5.0f);
-		vec4 rr = translatem * sdfsdf;
 	}
 
 	vec2 calculateAdjust(const vec2& aspectRation, GUIAdjustMode adjust) {

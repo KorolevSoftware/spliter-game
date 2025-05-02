@@ -10,6 +10,8 @@ namespace Engine {
 	using vec4 = vec<4, float>;
 	using mat4 = mat<4, float>;
 
+	using i16vec2 = vec<2, uint16_t>;
+
 	enum class GUIPivot {
 		Centre,
 		North,
@@ -72,6 +74,15 @@ namespace Engine {
 		std::list<GUINodeID> children;
 
 		GUINode();
+	};
+
+	struct Patch {
+		i16vec2 origin, size;
+	};
+
+	struct Atlas {
+		uint32_t textureID;
+		i16vec2 width, height;
 	};
 
 	struct GUIDrawCommand {

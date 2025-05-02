@@ -11,9 +11,7 @@ namespace Engine {
 		}
 	};
 
-	int make_char(GUIVertex* vertexBuffer, const vec4& color, const vec3& position, const vec2& size, const vec2& textureCoord1, const vec2& textureCoord2) {
-		vec2 dim = size;
-
+	int make_char(GUIVertex* vertexBuffer, const vec4& color, const vec3& position, const vec2& dim, const vec2& textureCoord1, const vec2& textureCoord2) {
 		//2-----------------------3
 		//|                       |
 		//|                       |
@@ -49,35 +47,37 @@ namespace Engine {
 	int generator_text(GUIVertex* vertexBuffer, const GUIBase* base, void* userData) {
 		TextData* textData = reinterpret_cast<TextData*>(userData);
 
-		int text_offset = 0;
+		int textOffestX = 0;
 		int vertexAddCount = 0;
-		float halfHeight = 0;
+		float textOffsetY = 0;
 
 		if (textData->text.empty()) {
 			return 0;
 
 		}
-		const char first = textData->text[0];
-		halfHeight = textData->font->glyphs[first].h / 2;
+		auto first = textData->text[0];
+		auto patch = textData->font->glyphs[first];
+		textOffsetY = (patch.origin.y - patch.size.y)/ 2;
 
 
-		for (auto& ch : textData->text) {
-			Rectangle r_ch = textData->font->glyphs[ch];
-			text_offset -= r_ch.w;
+		for (auto& ch : textData->text) { // Offset by X axis
+			Patch r_ch = textData->font->glyphs[ch];
+			textOffestX -= r_ch.size.x - r_ch.origin.x;
 		}
 
-		text_offset /= 2;
+		textOffestX /= 2;
 		for (auto& ch : textData->text) {
-			Rectangle r_ch = textData->font->glyphs[ch];
+			Patch r_ch = textData->font->glyphs[ch];
 
-			vec4 normalize = vec4(r_ch.x, r_ch.y, r_ch.w, r_ch.h) / 512.0f;
+			vec4 normalize = vec4(r_ch.origin, r_ch.size) / 512.0f;
 			vec2 textureCoord1 = vec2(normalize.x, normalize.y);
-			vec2 textureCoord2 = textureCoord1 + vec2(normalize.z, normalize.p);
+			vec2 textureCoord2 = vec2(normalize.z, normalize.p);
 
-			vec3 position =vec3(text_offset, halfHeight, 0);
-			vec2 size = vec2(r_ch.w, -r_ch.h);
-			vertexAddCount += make_char(&vertexBuffer[vertexAddCount], vec4(0.0f, 0.0f, 0.0f, 1.0f), position, size, textureCoord1, textureCoord2);
-			text_offset += r_ch.w;
+			vec3 position = vec3(textOffestX,-textOffsetY, 0);
+			vec2 size = vec2(r_ch.size.x - r_ch.origin.x, r_ch.origin.y - r_ch.size.y);
+
+			vertexAddCount += make_char(&vertexBuffer[vertexAddCount], vec4(0.0f, 0.0f, 0.0f, 0.0f), position, size, textureCoord1, textureCoord2);
+			textOffestX += size.x;
 		}
 		return vertexAddCount;
 	}

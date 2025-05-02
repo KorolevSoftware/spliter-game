@@ -78,16 +78,16 @@ float lerp(float a, float b, float weight) {
 	return a * (1 - weight) + b * weight;
 }
 
-static Engine::Rectangle glyphs[255];
+static Engine::Patch glyphs[255];
 
 
 SDL_Surface* initFont(char* filename) {
 	TTF_Init();
 	SDL_Surface* surface, * text;
-	Engine::Rectangle dest;
+	Engine::Patch dest;
 	int i;
 	char c[2];
-	Engine::Rectangle* g;
+	Engine::Patch* g;
 
 	int texture_size = 512;
 
@@ -97,7 +97,7 @@ SDL_Surface* initFont(char* filename) {
 
 	SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGBA(surface->format, 0, 0, 0, 0));
 
-	dest.x = dest.y = 0;
+	dest.origin = Engine::i16vec2(0, 0);
 	SDL_Color white{ 255, 255, 255, 255 };
 
 	for (i = ' '; i <= 'z'; i++) {
@@ -106,23 +106,25 @@ SDL_Surface* initFont(char* filename) {
 
 		text = TTF_RenderUTF8_Blended(font, c, white);
 
-		TTF_SizeText(font, c, &dest.w, &dest.h);
+		int charWidth;
+		int charHeight;
+		TTF_SizeText(font, c, &charWidth, &charHeight);
+		dest.size = Engine::i16vec2(charWidth, charHeight);
+		if (dest.origin.x + dest.size.x >= texture_size) {
+			dest.origin.x = 0;
 
-		if (dest.x + dest.w >= texture_size) {
-			dest.x = 0;
+			dest.origin.y += dest.size.y + 1;
 
-			dest.y += dest.h + 1;
-
-			if (dest.y + dest.h >= texture_size) {
+			if (dest.origin.y + dest.size.y >= texture_size) {
 				SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_CRITICAL, "Out of glyph space in %dx%d font atlas texture map.", texture_size, texture_size);
 				exit(1);
 			}
 		}
 		SDL_Rect rr;
- 		rr.x = dest.x;
-		rr.y = dest.y;
-		rr.w = dest.w;
-		rr.h = dest.h;
+ 		rr.x = dest.origin.x;
+		rr.y = dest.origin.y;
+		rr.w = dest.size.x;
+		rr.h = dest.size.y;
 		SDL_BlitSurface(text, NULL, surface, &rr);
 
 		g = &glyphs[i];
@@ -137,14 +139,14 @@ SDL_Surface* initFont(char* filename) {
 		//|							|			  		//|							  |
 		//------------------------end			  		//start------------------------
 
-		g->x = rr.x;
-		g->y = rr.h+ rr.y;
-		g->w = rr.w;
-		g->h = -rr.h;
+		g->origin.x = rr.x;
+		g->origin.y = rr.h + rr.y;
+		g->size.x = rr.w + rr.x;
+		g->size.y = rr.y;
 
 		SDL_FreeSurface(text);
 
-		dest.x += rr.w;
+		dest.origin.x += rr.w;
 	}
 
 	return surface;
@@ -206,7 +208,7 @@ int main(int argc, char* argv[]) {
 	composer.setRotationZ(box5, Engine::radians(45.0f));
 	composer.setSize(box5, Engine::vec2(100.0, 100.0));
 	composer.setScale(box5, Engine::vec3(0.5, 1.0f, 1.0f));
-	composer.setColor(box5, Engine::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	composer.setColor(box5, Engine::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	composer.setChildren(testQuad, box5);
 	composer.setAnchorX(box5, true);
 	composer.setAdjustMode(box5, Engine::GUIAdjustMode::Zoom);

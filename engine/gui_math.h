@@ -162,6 +162,15 @@ vec<N, type> operator+(const vec<N, type>& firts, const vec<N, type>& second) {
 }
 
 template<length_t N, typename type>
+vec<N, type> operator-(const vec<N, type>& firts, const vec<N, type>& second) {
+	vec<N, type> result;
+	for (size_t i = 0; i < N; i++) {
+		result.data[i] = firts.data[i] - second.data[i];
+	}
+	return result;
+}
+
+template<length_t N, typename type>
 vec<N, type> operator/(const vec<N, type>& firts, const vec<N, type>& second) {
 	vec<N, type> result;
 	for (size_t i = 0; i < N; i++) {
