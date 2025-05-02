@@ -87,7 +87,6 @@ SDL_Surface* initFont(char* filename) {
 	Engine::Patch dest;
 	int i;
 	char c[2];
-	Engine::Patch* g;
 
 	int texture_size = 512;
 
@@ -127,7 +126,7 @@ SDL_Surface* initFont(char* filename) {
 		rr.h = dest.size.y;
 		SDL_BlitSurface(text, NULL, surface, &rr);
 
-		g = &glyphs[i];
+		Engine::Patch& g = glyphs[i];
 
 		//start----------------------             		//----------------------------end
 		//|							|			  		//|							  |
@@ -139,13 +138,12 @@ SDL_Surface* initFont(char* filename) {
 		//|							|			  		//|							  |
 		//------------------------end			  		//start------------------------
 
-		g->origin.x = rr.x;
-		g->origin.y = rr.h + rr.y;
-		g->size.x = rr.w + rr.x;
-		g->size.y = rr.y;
+		g.origin.x = rr.x;
+		g.origin.y = rr.h + rr.y;
+		g.size.x = rr.w + rr.x;
+		g.size.y = rr.y;
 
 		SDL_FreeSurface(text);
-
 		dest.origin.x += rr.w;
 	}
 
