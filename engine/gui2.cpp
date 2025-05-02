@@ -149,6 +149,7 @@ namespace Engine {
 	uint32_t GUIComposer::getRenderBufSizeof() const {
 		return getVertexCount() * sizeof(GUIVertex);
 	}
+
 	bool GUIComposer::pickNode(GUINodeID node, const vec2& pos) const {
 		const GUINode& nodeRef = nodePoolBuffer[node];
 		mat4 inv;// = glm::inverse(nodeRef.localTransform);
@@ -190,6 +191,9 @@ namespace Engine {
 	}
 
 	void GUIComposer::setChildren(GUINodeID parent, GUINodeID node) {
+		if (nodePoolBuffer[node].parent != GUINodeInvalidID) {
+			// TODO remove from old parent
+		}
 		nodePoolBuffer[node].parent = parent;
 		nodePoolBuffer[parent].children.push_back(node);
 	}
