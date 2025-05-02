@@ -120,15 +120,15 @@ namespace Engine {
 		void setPivot(GUINodeID node, GUIPivot pivot);
 		void setHesh(GUINodeID node, uint32_t hash);
 
-		GUINodeID getHesh(GUINodeID node);
-		GUIPivot getPivot(GUINodeID node);
-		bool getAnchorY(GUINodeID node);
-		bool getAnchorX(GUINodeID node);
-		vec4 setColor(GUINodeID node);
-		vec2 getSize(GUINodeID node);
-		float getRotationZ(GUINodeID node);
-		vec3 getPosition(GUINodeID node);
-		vec3 getScale(GUINodeID node);
+		GUINodeID getHesh(GUINodeID node) const;
+		GUIPivot getPivot(GUINodeID node) const;
+		bool getAnchorY(GUINodeID node) const;
+		bool getAnchorX(GUINodeID node) const;
+		vec4 setColor(GUINodeID node) const;
+		vec2 getSize(GUINodeID node) const;
+		float getRotationZ(GUINodeID node) const;
+		vec3 getPosition(GUINodeID node) const;
+		vec3 getScale(GUINodeID node) const;
 		GUIAdjustMode setAdjustMode(GUINodeID node);
 
 
