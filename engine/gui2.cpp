@@ -158,6 +158,30 @@ namespace Engine {
 		return nodePoolBuffer.size() - 1;
 	}
 
+	GUINodeID GUIComposer::findNode(uint32_t hash) const {
+		auto result = std::find_if(std::begin(nodePoolBuffer), std::end(nodePoolBuffer), [hash](const GUINode& node) {
+			return node.hash == hash;
+			});
+
+		auto index = std::distance(nodePoolBuffer.begin(), result);
+		if (index == nodePoolBuffer.size()) {
+			return GUINodeInvalidID;
+		}
+		return index;
+	}
+
+	void GUIComposer::setChildren(GUINodeID parent, GUINodeID node) {
+		if (nodePoolBuffer[node].parent != GUINodeInvalidID) {
+			// TODO remove from old parent
+		}
+		nodePoolBuffer[node].parent = parent;
+		nodePoolBuffer[parent].children.push_back(node);
+	}
+
+	bool GUIComposer::isValide(GUINodeID node) const {
+		return node != GUINodeInvalidID;
+	}
+
 	void GUIComposer::setAdjustMode(GUINodeID node, GUIAdjustMode mode) {
 		nodePoolBuffer[node].adjustMode = mode;
 	}
@@ -186,14 +210,6 @@ namespace Engine {
 		nodePoolBuffer[node].base.color = color;
 	}
 
-	void GUIComposer::setChildren(GUINodeID parent, GUINodeID node) {
-		if (nodePoolBuffer[node].parent != GUINodeInvalidID) {
-			// TODO remove from old parent
-		}
-		nodePoolBuffer[node].parent = parent;
-		nodePoolBuffer[parent].children.push_back(node);
-	}
-
 	void GUIComposer::setAnchorY(GUINodeID node, bool isEnable) {
 		nodePoolBuffer[node].anchorY = isEnable;
 	}
@@ -210,20 +226,44 @@ namespace Engine {
 		nodePoolBuffer[node].hash = hash;
 	}
 
-	GUINodeID GUIComposer::findNode(uint32_t hash) const {
-		auto result = std::find_if(std::begin(nodePoolBuffer), std::end(nodePoolBuffer), [hash](const GUINode& node) {
-			return node.hash == hash;
-			});
-
-		auto index = std::distance(nodePoolBuffer.begin(), result);
-		if (index == nodePoolBuffer.size()) {
-			return GUINodeInvalidID;
-		}
-		return index;
+	GUINodeID GUIComposer::getHesh(GUINodeID node) {
+		return nodePoolBuffer[node].hash;
 	}
 
-	bool GUIComposer::isValide(GUINodeID node) const {
-		return node != GUINodeInvalidID;
+	GUIPivot GUIComposer::getPivot(GUINodeID node) {
+		return nodePoolBuffer[node].pivot;
+	}
+
+	bool GUIComposer::getAnchorY(GUINodeID node) {
+		return nodePoolBuffer[node].anchorY;
+	}
+
+	bool GUIComposer::getAnchorX(GUINodeID node) {
+		return nodePoolBuffer[node].anchorX;
+	}
+
+	vec4 GUIComposer::setColor(GUINodeID node) {
+		return nodePoolBuffer[node].base.color;
+	}
+
+	vec2 GUIComposer::getSize(GUINodeID node) {
+		return nodePoolBuffer[node].base.size;
+	}
+
+	float GUIComposer::getRotationZ(GUINodeID node) {
+		return nodePoolBuffer[node].angleZ;
+	}
+
+	vec3 GUIComposer::getPosition(GUINodeID node) {
+		return nodePoolBuffer[node].position;
+	}
+
+	vec3 GUIComposer::getScale(GUINodeID node) {
+		return nodePoolBuffer[node].scale;
+	}
+
+	GUIAdjustMode GUIComposer::setAdjustMode(GUINodeID node) {
+		return nodePoolBuffer[node].adjustMode;
 	}
 
 	GUIVertex::GUIVertex() {}

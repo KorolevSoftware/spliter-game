@@ -74,7 +74,10 @@ namespace Engine {
 			vec2 textureCoord2 = vec2(normalize.z, normalize.p);
 
 			vec3 position = vec3(textOffestX,-textOffsetY, 0);
-			vec2 size = vec2(r_ch.size.x - r_ch.origin.x, r_ch.origin.y - r_ch.size.y);
+			vec2 size = vec2(
+				r_ch.size.x - r_ch.origin.x,
+				r_ch.origin.y - r_ch.size.y
+			);
 
 			vertexAddCount += make_char(&vertexBuffer[vertexAddCount], vec4(0.0f, 0.0f, 0.0f, 0.0f), position, size, textureCoord1, textureCoord2);
 			textOffestX += size.x;

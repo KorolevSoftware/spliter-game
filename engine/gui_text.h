@@ -4,7 +4,8 @@
 
 namespace Engine {
 	struct Font {
-		Patch glyphs[255];
+		std::array<Patch, 255> glyphs;
 	};
+
 	GUINodeID make_text(GUIComposer& composer, const std::string& text, Font* font);
 };

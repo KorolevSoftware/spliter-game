@@ -2,6 +2,7 @@
 #include <list>
 #include "gui_math.h"
 #include <vector>
+#include <array>
 
 namespace Engine {
 	float radians(float angle);
@@ -81,6 +82,7 @@ namespace Engine {
 	};
 
 	struct Atlas {
+		std::array< Patch, 255> images;
 		uint32_t textureID;
 		i16vec2 width, height;
 	};
@@ -102,6 +104,9 @@ namespace Engine {
 		bool pickNode(GUINodeID node, const vec2& pos) const;
 		
 		GUINodeID makeNode();
+		GUINodeID findNode(uint32_t hash) const;
+		bool isValide(GUINodeID node) const;
+
 		void setAdjustMode(GUINodeID node, GUIAdjustMode mode);
 		void setPrimitive(GUIPrimitive primitive, GUINodeID node);
 		void setScale(GUINodeID node, vec3 scale);
@@ -114,8 +119,18 @@ namespace Engine {
 		void setAnchorX(GUINodeID node, bool isEnable);
 		void setPivot(GUINodeID node, GUIPivot pivot);
 		void setHesh(GUINodeID node, uint32_t hash);
-		GUINodeID findNode(uint32_t hash) const;
-		bool isValide(GUINodeID node) const;
+
+		GUINodeID getHesh(GUINodeID node);
+		GUIPivot getPivot(GUINodeID node);
+		bool getAnchorY(GUINodeID node);
+		bool getAnchorX(GUINodeID node);
+		vec4 setColor(GUINodeID node);
+		vec2 getSize(GUINodeID node);
+		float getRotationZ(GUINodeID node);
+		vec3 getPosition(GUINodeID node);
+		vec3 getScale(GUINodeID node);
+		GUIAdjustMode setAdjustMode(GUINodeID node);
+
 
 	private:
 		uint32_t vertexArrayOffset;
