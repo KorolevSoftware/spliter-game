@@ -227,6 +227,8 @@ int main(int argc, char* argv[]) {
 	Engine::GUINodeID box_text = Engine::make_text(composer, "Hello!", &font);
 	composer.setChildren(box5, box_text);
 
+	uint32_t size;
+	auto arr = composer.getChildrens(box5, &size);
 	float angle = 0;
 	while (true) { // engine loop
 		Engine::Box& select = boxes.back();
@@ -247,7 +249,7 @@ int main(int argc, char* argv[]) {
 			dir = 1;
 		}
 		angle += 1;
-		composer.setRotationZ(box5, Engine::radians(angle));
+		//composer.setRotationZ(box5, Engine::radians(angle));
 		if (moveByX) {
 			select.position.x += dir * 0.016;
 		} else {
@@ -292,7 +294,6 @@ int main(int argc, char* argv[]) {
 		}
 		main_graphics.endDraw();
 		main_window.present();
-		composer.clearVertexBuffer();
 	}
 	return 0;
 }

@@ -97,7 +97,6 @@ namespace Engine {
 		GUIComposer(uint32_t vertexPoolSize, uint32_t nodePoolSize);
 		void compose(GUINodeID node, const vec2& localResolution, const vec2& actualResolution, const vec2& parentOffset);
 		void composeScreen(GUINodeID node, const vec2& aspectRation);
-		void clearVertexBuffer();
 		const uint8_t* getBufferData() const;
 		uint32_t getVertexCount() const;
 		uint32_t getRenderBufSizeof() const;
@@ -129,8 +128,9 @@ namespace Engine {
 		float getRotationZ(GUINodeID node) const;
 		vec3 getPosition(GUINodeID node) const;
 		vec3 getScale(GUINodeID node) const;
-		GUIAdjustMode setAdjustMode(GUINodeID node);
-
+		GUIAdjustMode getAdjustMode(GUINodeID node) const;
+		uint32_t getChildrenCount(GUINodeID node) const;
+		GUINodeID* getChildrens(GUINodeID node, uint32_t* size) const;
 
 	private:
 		uint32_t vertexArrayOffset;

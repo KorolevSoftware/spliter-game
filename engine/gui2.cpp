@@ -76,6 +76,7 @@ namespace Engine {
 	}
 
 	void GUIComposer::compose(GUINodeID node, const vec2& localResolution, const vec2& actualResolution, const vec2& parentOffset) {
+		vertexArrayOffset = 0;
 		vec2 aspectRation = actualResolution / localResolution;
 		return composeScreen(node, aspectRation);
 	}
@@ -130,10 +131,6 @@ namespace Engine {
 		}
 	}
 
-	void GUIComposer::clearVertexBuffer() {
-		vertexArrayOffset = 0;
-	}
-
 	const uint8_t* GUIComposer::getBufferData() const {
 		return reinterpret_cast<uint8_t const*>(vertexBuffer);
 	}
@@ -148,7 +145,7 @@ namespace Engine {
 
 	bool GUIComposer::pickNode(GUINodeID node, const vec2& pos) const {
 		const GUINode& nodeRef = nodePoolBuffer[node];
-		mat4 inv;// = glm::inverse(nodeRef.localTransform);
+		mat4 inv = inverse(nodeRef.localTransform);
 		vec2 localPosition = resize_vec<2>(inv * vec4(pos.x, pos.y, 0.0f, 1.0f));
 		return nodeRef.primitive.input(localPosition, &nodeRef.base, nodeRef.primitive.userData);
 	}
@@ -262,8 +259,27 @@ namespace Engine {
 		return nodePoolBuffer[node].scale;
 	}
 
-	GUIAdjustMode GUIComposer::setAdjustMode(GUINodeID node) {
+	GUIAdjustMode GUIComposer::getAdjustMode(GUINodeID node) const {
 		return nodePoolBuffer[node].adjustMode;
+	}
+
+	uint32_t GUIComposer::getChildrenCount(GUINodeID node) const {
+		const GUINode& rNode = nodePoolBuffer[node];
+		return rNode.children.size();
+	}
+
+	GUINodeID* GUIComposer::getChildrens(GUINodeID node, uint32_t* size) const {
+		const GUINode& rNode = nodePoolBuffer[node];
+
+		*size = rNode.children.size();
+		GUINodeID* childrens = new GUINodeID[*size];
+
+		uint32_t index = 0;
+		for(auto childrenNode: rNode.children) {
+			childrens[index] = childrenNode;
+			index++;
+		}
+		return childrens;
 	}
 
 	GUIVertex::GUIVertex() {}

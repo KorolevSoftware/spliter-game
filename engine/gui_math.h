@@ -339,6 +339,63 @@ mat<4, T> rotationZ(T angle) {
 }
 
 template<dim_t Size, typename T>
+mat<Size, T> inverse(const mat<Size, T>& m) {
+	mat<Size, T> result;
+	mat<Size, T> temp = m;
+
+	// Инициализируем result как единичную матрицу
+	for (dim_t i = 0; i < Size; ++i) {
+		for (dim_t j = 0; j < Size; ++j) {
+			result.data[i].data[j] = (i == j) ? T(1) : T(0);
+		}
+	}
+
+	// Прямой ход метода Гаусса
+	for (dim_t col = 0; col < Size; ++col) {
+		// Выбор главного элемента (частичный выбор)
+		dim_t max_row = col;
+		for (dim_t row = col + 1; row < Size; ++row) {
+			if (std::abs(temp.data[row].data[col]) >
+				std::abs(temp.data[max_row].data[col])) {
+				max_row = row;
+			}
+		}
+
+		// Перестановка строк
+		if (max_row != col) {
+			std::swap(temp.data[col], temp.data[max_row]);
+			std::swap(result.data[col], result.data[max_row]);
+		}
+
+		//// Проверка на вырожденность
+		//if (std::abs(temp.data[col].data[col]) < std::numeric_limits<T>::epsilon()) {
+		//	throw std::runtime_error("Matrix is not invertible");
+		//}
+
+		// Нормализация текущей строки
+		T pivot = temp.data[col].data[col];
+		for (dim_t j = 0; j < Size; ++j) {
+			temp.data[col].data[j] /= pivot;
+			result.data[col].data[j] /= pivot;
+		}
+
+		// Обнуление столбца в других строках
+		for (dim_t row = 0; row < Size; ++row) {
+			if (row != col && std::abs(temp.data[row].data[col]) >
+				std::numeric_limits<T>::epsilon()) {
+				T factor = temp.data[row].data[col];
+				for (dim_t j = 0; j < Size; ++j) {
+					temp.data[row].data[j] -= temp.data[col].data[j] * factor;
+					result.data[row].data[j] -= result.data[col].data[j] * factor;
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+template<dim_t Size, typename T>
 mat<Size, T> operator*(const mat<Size, T>& a, const mat<Size, T>& b) {
 	mat<Size, T> result;
 
