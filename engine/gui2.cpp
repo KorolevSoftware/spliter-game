@@ -145,7 +145,7 @@ namespace Engine {
 
 	bool GUIComposer::pickNode(GUINodeID node, const vec2& pos) const {
 		const GUINode& nodeRef = nodePoolBuffer[node];
-		mat4 inv = inverse_affine(nodeRef.localTransform * scaling(nodeRef.invAdjustScale.x, nodeRef.invAdjustScale.y, 1.0f));
+		mat4 inv = inverse(nodeRef.localTransform);
 		mat4 check = nodeRef.localTransform * inv;
 		vec2 localPosition = resize_vec<2>(inv * vec4(pos.x, pos.y, 0.0f, 1.0f));
 		return nodeRef.primitive.input(localPosition, &nodeRef.base, nodeRef.primitive.userData);
