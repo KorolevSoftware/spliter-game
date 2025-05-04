@@ -343,13 +343,6 @@ mat<Size, T> inverse(const mat<Size, T>& m) {
 	mat<Size, T> result;
 	mat<Size, T> temp = m;
 
-	// Инициализируем result как единичную матрицу
-	for (dim_t i = 0; i < Size; ++i) {
-		for (dim_t j = 0; j < Size; ++j) {
-			result.data[i].data[j] = (i == j) ? T(1) : T(0);
-		}
-	}
-
 	// Прямой ход метода Гаусса
 	for (dim_t col = 0; col < Size; ++col) {
 		// Выбор главного элемента (частичный выбор)
@@ -366,11 +359,6 @@ mat<Size, T> inverse(const mat<Size, T>& m) {
 			std::swap(temp.data[col], temp.data[max_row]);
 			std::swap(result.data[col], result.data[max_row]);
 		}
-
-		//// Проверка на вырожденность
-		//if (std::abs(temp.data[col].data[col]) < std::numeric_limits<T>::epsilon()) {
-		//	throw std::runtime_error("Matrix is not invertible");
-		//}
 
 		// Нормализация текущей строки
 		T pivot = temp.data[col].data[col];
@@ -392,6 +380,20 @@ mat<Size, T> inverse(const mat<Size, T>& m) {
 		}
 	}
 
+	return result;
+}
+template<typename T>
+mat<4, T> inverse_affine(const mat<4, T>& m) {
+	mat<4, T> result;
+	// Блок поворота
+	for (dim_t i = 0; i < 3; ++i) {
+		for (dim_t j = 0; j < 3; ++j) {
+			result.data[i].data[j] = m.data[j].data[i];
+		}
+	}
+
+	result.data[3] = result * m.data[3] * T(-1);
+	result.data[3].data[3] = T(1);
 	return result;
 }
 
