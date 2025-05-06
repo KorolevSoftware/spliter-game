@@ -2,13 +2,15 @@
 #include "string"
 namespace Engine {
 
-	struct TextData {
+	struct TextData: IGUIPrimitive {
 		std::string text;
 		Font* font;
 		TextData(const std::string& text, Font* font) {
 			this->text = text;
 			this->font = font;
 		}
+		int generator(GUIVertex* vertex, const GUIBase* base) override;
+		bool input(const vec2& clickPosition, const GUIBase* base) override;
 	};
 
 	int make_char(GUIVertex* vertexBuffer, const vec4& color, const vec3& position, const vec2& dim, const vec2& textureCoord1, const vec2& textureCoord2) {
@@ -40,34 +42,32 @@ namespace Engine {
 		return 6;
 	}
 
-	bool text_input(const vec2& clickPosition, const GUIBase* base, void* userData) {
+	bool TextData::input(const vec2& clickPosition, const GUIBase* base) {
 		return false;
 	}
 
-	int generator_text(GUIVertex* vertexBuffer, const GUIBase* base, void* userData) {
-		TextData* textData = reinterpret_cast<TextData*>(userData);
+	int TextData::generator(GUIVertex* vertexBuffer, const GUIBase* base) {
 
 		int textOffestX = 0;
 		int vertexAddCount = 0;
 		float textOffsetY = 0;
 
-		if (textData->text.empty()) {
+		if (this->text.empty()) {
 			return 0;
 
 		}
-		auto first = textData->text[0];
-		auto patch = textData->font->glyphs[first];
+		auto first = this->text[0];
+		auto patch = this->font->glyphs[first];
 		textOffsetY = (patch.origin.y - patch.size.y)/ 2;
 
-
-		for (auto& ch : textData->text) { // Offset by X axis
-			Patch r_ch = textData->font->glyphs[ch];
+		for (auto& ch : this->text) { // Offset by X axis
+			Patch r_ch = this->font->glyphs[ch];
 			textOffestX -= r_ch.size.x - r_ch.origin.x;
 		}
 
 		textOffestX /= 2;
-		for (auto& ch : textData->text) {
-			Patch r_ch = textData->font->glyphs[ch];
+		for (auto& ch : this->text) {
+			Patch r_ch = this->font->glyphs[ch];
 
 			vec4 normalize = vec4(r_ch.origin, r_ch.size) / 512.0f;
 			vec2 textureCoord1 = vec2(normalize.x, normalize.y);
@@ -87,12 +87,8 @@ namespace Engine {
 
 	GUINodeID make_text(GUIComposer& composer, const std::string& text, Font* font) {
 		GUINodeID node = composer.makeNode();
-		GUIPrimitive primitive;
-		primitive.generator = generator_text;
-		primitive.input = text_input;
-		primitive.userData = new TextData(text, font);
+		IGUIPrimitive* primitive = new TextData(text, font);
 		composer.setPrimitive(primitive, node);
-
 		return node;
 	}
 };

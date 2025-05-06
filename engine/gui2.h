@@ -44,11 +44,9 @@ namespace Engine {
 		vec4 color;
 	};
 
-	struct GUIPrimitive {
-		void* userData;
-		int (*generator)(GUIVertex* vertex, const GUIBase* base, void* userData);
-		bool (*input)(const vec2& clickPosition, const GUIBase* base, void* userData);
-		void (*release)();
+	struct IGUIPrimitive {
+		virtual int generator(GUIVertex* vertex, const GUIBase* base) = 0;
+		virtual bool input(const vec2& clickPosition, const GUIBase* base) = 0;
 	};
 
 	using GUINodeID = uint32_t;
@@ -69,7 +67,7 @@ namespace Engine {
 		vec2 invAdjustScale;
 
 		GUIBase base;
-		GUIPrimitive primitive;
+		IGUIPrimitive* primitive;
 		
 		GUINodeID parent;
 		std::list<GUINodeID> children;
@@ -107,7 +105,7 @@ namespace Engine {
 		bool isValide(GUINodeID node) const;
 
 		void setAdjustMode(GUINodeID node, GUIAdjustMode mode);
-		void setPrimitive(GUIPrimitive primitive, GUINodeID node);
+		void setPrimitive(IGUIPrimitive* primitive, GUINodeID node);
 		void setScale(GUINodeID node, vec3 scale);
 		void setPosition(GUINodeID node, vec3 position);
 		void setRotationZ(GUINodeID node, float angle);

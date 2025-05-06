@@ -115,9 +115,7 @@ namespace Engine {
 		if (nodeRef.visable) {
 			[[likely]]
 			int addVertexCount = 0;
-			if (nodeRef.primitive.generator) {
-				addVertexCount = nodeRef.primitive.generator(&vertexBuffer[vertexArrayOffset], &nodeRef.base, nodeRef.primitive.userData);
-			}
+			addVertexCount = nodeRef.primitive->generator(&vertexBuffer[vertexArrayOffset], &nodeRef.base);
 
 			for (auto i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
 				GUIVertex& vertex = vertexBuffer[i];
@@ -146,9 +144,8 @@ namespace Engine {
 	bool GUIComposer::pickNode(GUINodeID node, const vec2& pos) const {
 		const GUINode& nodeRef = nodePoolBuffer[node];
 		mat4 inv = inverse(nodeRef.localTransform);
-		mat4 check = nodeRef.localTransform * inv;
 		vec2 localPosition = resize_vec<2>(inv * vec4(pos.x, pos.y, 0.0f, 1.0f));
-		return nodeRef.primitive.input(localPosition, &nodeRef.base, nodeRef.primitive.userData);
+		return nodeRef.primitive->input(localPosition, &nodeRef.base);
 	}
 
 	GUINodeID GUIComposer::makeNode() {
@@ -176,6 +173,20 @@ namespace Engine {
 		nodePoolBuffer[parent].children.push_back(node);
 	}
 
+	GUINodeID* GUIComposer::getChildrens(GUINodeID node, uint32_t* size) const {
+		const GUINode& rNode = nodePoolBuffer[node];
+
+		*size = rNode.children.size();
+		GUINodeID* childrens = new GUINodeID[*size];
+
+		uint32_t index = 0;
+		for (auto childrenNode : rNode.children) {
+			childrens[index] = childrenNode;
+			index++;
+		}
+		return childrens;
+	}
+
 	bool GUIComposer::isValide(GUINodeID node) const {
 		return node != GUINodeInvalidID;
 	}
@@ -184,7 +195,7 @@ namespace Engine {
 		nodePoolBuffer[node].adjustMode = mode;
 	}
 
-	void GUIComposer::setPrimitive(GUIPrimitive primitive, GUINodeID node) {
+	void GUIComposer::setPrimitive(IGUIPrimitive* primitive, GUINodeID node) {
 		nodePoolBuffer[node].primitive = primitive;
 	}
 
@@ -267,20 +278,6 @@ namespace Engine {
 	uint32_t GUIComposer::getChildrenCount(GUINodeID node) const {
 		const GUINode& rNode = nodePoolBuffer[node];
 		return rNode.children.size();
-	}
-
-	GUINodeID* GUIComposer::getChildrens(GUINodeID node, uint32_t* size) const {
-		const GUINode& rNode = nodePoolBuffer[node];
-
-		*size = rNode.children.size();
-		GUINodeID* childrens = new GUINodeID[*size];
-
-		uint32_t index = 0;
-		for(auto childrenNode: rNode.children) {
-			childrens[index] = childrenNode;
-			index++;
-		}
-		return childrens;
 	}
 
 	GUIVertex::GUIVertex() {}

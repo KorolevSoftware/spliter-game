@@ -269,7 +269,6 @@ int main(int argc, char* argv[]) {
 		Engine::WindowEvent wEvent;
 		while (main_window.getEvent(wEvent)) { // event loop
 			if (wEvent.pressed) {
-
 				mouse_pos.x = wEvent.posX;
 				mouse_pos.y = wEvent.posY;
 				//spdlog::info("Click x: {} y:{}", wEvent.posX, wEvent.posY);

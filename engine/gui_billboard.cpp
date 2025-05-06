@@ -4,14 +4,15 @@
 #include "gui_billboard.h"
 
 namespace Engine {
-
-	struct BilboardData {
+	struct BilboardData: IGUIPrimitive {
 		vec2 textureCoord1;
 		vec2 textureCoord2;
 		BilboardData(vec2 textureCoord1, vec2 textureCoord2) : textureCoord1(textureCoord1), textureCoord2(textureCoord2) {}
+		int generator(GUIVertex* vertex, const GUIBase* base) override;
+		bool input(const vec2& clickPosition, const GUIBase* base) override;
 	};
 
-	bool bilboard_input(const vec2& clickPosition, const GUIBase* base, void* userData) {
+	bool BilboardData::input(const vec2& clickPosition, const GUIBase* base)  {
 		vec2 dim = base->size / 2.0f;
 
 		if (-dim.x > clickPosition.x || dim.x < clickPosition.x)
@@ -24,8 +25,7 @@ namespace Engine {
 		return true;
 	}
 
-	int generator(GUIVertex* vertexBuffer, const GUIBase* base, void* userData) {
-		BilboardData* bilboard = reinterpret_cast<BilboardData*>(userData);
+	int BilboardData::generator(GUIVertex* vertexBuffer, const GUIBase* base) {
 		vec2 dim = base->size / 2.0f;
 
 			//2-----------------------3
@@ -46,14 +46,14 @@ namespace Engine {
 		vec3 position5(-dim.x, dim.y, 0.0f); // 2
 		vec3 position6(dim.x, dim.y, 0.0f); // 3
 
-		vec2 textCoord3 = vec2(bilboard->textureCoord1.x, bilboard->textureCoord2.y);
-		vec2 textCoord4 = vec2(bilboard->textureCoord2.x, bilboard->textureCoord1.y);
+		vec2 textCoord3 = vec2(this->textureCoord1.x, this->textureCoord2.y);
+		vec2 textCoord4 = vec2(this->textureCoord2.x, this->textureCoord1.y);
 
 		for(auto i = 0; i < 6; i++) {
 			vertexBuffer[i].color = base->color;
 		}
 		vertexBuffer[0].position = position1;
-		vertexBuffer[0].texCoords = bilboard->textureCoord1;
+		vertexBuffer[0].texCoords = this->textureCoord1;
 
 		vertexBuffer[1].position = position2;
 		vertexBuffer[1].texCoords = textCoord3;
@@ -68,16 +68,13 @@ namespace Engine {
 		vertexBuffer[4].texCoords = textCoord3;
 
 		vertexBuffer[5].position = position6;
-		vertexBuffer[5].texCoords = bilboard->textureCoord2;
+		vertexBuffer[5].texCoords = this->textureCoord2;
 		return 6;
 	}
 
 	GUINodeID make_billboard(GUIComposer& composer, const vec2& textureCoord1, const vec2& textureCoord2) {
 		GUINodeID node = composer.makeNode();
-		GUIPrimitive primitive;
-		primitive.generator = generator;
-		primitive.input = bilboard_input;
-		primitive.userData = new BilboardData(textureCoord1, textureCoord2);
+		IGUIPrimitive* primitive = new BilboardData(textureCoord1, textureCoord2);
 		composer.setPrimitive(primitive, node);
 
 		return node;
