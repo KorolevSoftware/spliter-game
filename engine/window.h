@@ -31,7 +31,7 @@ namespace Engine {
 		WindowStatus finalize();
 		
 		void loadImage(std::filesystem::path path, std::vector<uint8_t> &pixels, uint8_t& depth, uint32_t& width, uint32_t& height);
-
+		void saveImage(std::filesystem::path path, const std::vector<uint8_t>& pixels, uint8_t depth, uint32_t width, uint32_t height);
 		void present();
 
 	private:

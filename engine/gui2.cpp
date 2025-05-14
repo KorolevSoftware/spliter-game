@@ -115,7 +115,7 @@ namespace Engine {
 		if (nodeRef.visable) {
 			[[likely]]
 			int addVertexCount = 0;
-			addVertexCount = nodeRef.primitive->generator(&vertexBuffer[vertexArrayOffset], &nodeRef.base);
+			addVertexCount = nodeRef.primitive->generator(&vertexBuffer[vertexArrayOffset], nodeRef.base, atlasBuffer);
 
 			for (auto i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
 				GUIVertex& vertex = vertexBuffer[i];
@@ -145,7 +145,7 @@ namespace Engine {
 		const GUINode& nodeRef = nodePoolBuffer[node];
 		mat4 inv = inverse(nodeRef.localTransform);
 		vec2 localPosition = resize_vec<2>(inv * vec4(pos.x, pos.y, 0.0f, 1.0f));
-		return nodeRef.primitive->input(localPosition, &nodeRef.base);
+		return nodeRef.primitive->input(localPosition, nodeRef.base);
 	}
 
 	GUINodeID GUIComposer::makeNode() {
@@ -184,6 +184,7 @@ namespace Engine {
 			childrens[index] = childrenNode;
 			index++;
 		}
+
 		return childrens;
 	}
 
@@ -233,6 +234,17 @@ namespace Engine {
 
 	void GUIComposer::setHesh(GUINodeID node, uint32_t hash) {
 		nodePoolBuffer[node].hash = hash;
+	}
+
+	uint32_t GUIComposer::makeAtlas(std::unordered_map<uint32_t, Patch> images, uint32_t textureID, uint32_t width, uint32_t height) {
+		Atlas atlas;
+		atlas.height = height;
+		atlas.width = width;
+		atlas.images = images;
+		atlas.textureID = textureID;
+
+		atlasBuffer.push_back(atlas);
+		return atlasBuffer.size() - 1;
 	}
 
 	GUINodeID GUIComposer::getHesh(GUINodeID node) const {

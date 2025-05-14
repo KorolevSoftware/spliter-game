@@ -6,11 +6,12 @@
 #include "engine/gui_billboard.h"
 #include "engine/gui_text.h"
 #include <glm/trigonometric.hpp>
-
+#include "engine/gui_serializer.h"
+#include <fstream>
+#include <SDL_image.h>  // для IMG_SavePNG()
 void createBox();
 
 Engine::vec2 mouse_pos;
-bool pick = false;
 bool osEvents(Engine::Window& window) {
 	return true;
 }
@@ -78,8 +79,7 @@ float lerp(float a, float b, float weight) {
 	return a * (1 - weight) + b * weight;
 }
 
-static Engine::Patch glyphs[255];
-
+std::unordered_map< uint32_t, Engine::Patch> glyphs;
 
 SDL_Surface* initFont(char* filename) {
 	TTF_Init();
@@ -92,9 +92,13 @@ SDL_Surface* initFont(char* filename) {
 
 	auto font = TTF_OpenFont(filename, 64);
 
-	surface = SDL_CreateRGBSurface(0, texture_size, texture_size, 32, 0, 0, 0, 0xff);
-
-	SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGBA(surface->format, 0, 0, 0, 0));
+	surface = SDL_CreateRGBSurfaceWithFormat(
+		0,                  // флаги (0 по умолчанию)
+		texture_size, texture_size,      // размеры
+		32,                 // глубина цвета (32 бита = 4 байта)
+		SDL_PIXELFORMAT_RGBA32  // формат: R, G, B, A
+	);
+	//SDL_FillRect(surface, NULL, SDL_MapRGBA(surface->format, 255, 255, 255, 0));
 
 	dest.origin = Engine::i16vec2(0, 0);
 	SDL_Color white{ 255, 255, 255, 255 };
@@ -126,7 +130,7 @@ SDL_Surface* initFont(char* filename) {
 		rr.h = dest.size.y;
 		SDL_BlitSurface(text, NULL, surface, &rr);
 
-		Engine::Patch& g = glyphs[i];
+		Engine::Patch g;
 
 		//start----------------------             		//----------------------------end
 		//|							|			  		//|							  |
@@ -145,6 +149,7 @@ SDL_Surface* initFont(char* filename) {
 
 		SDL_FreeSurface(text);
 		dest.origin.x += rr.w;
+		glyphs[i] = g;
 	}
 
 	return surface;
@@ -164,7 +169,7 @@ int main(int argc, char* argv[]) {
 	uint32_t width, height;
 
 	SDL_Surface* img = initFont("arial.ttf");
-
+	IMG_SavePNG(img, "font.png");
 	tex_image.reserve(img->h * img->pitch);
 	std::copy(
 		reinterpret_cast<uint8_t*>(img->pixels),
@@ -174,8 +179,6 @@ int main(int argc, char* argv[]) {
 	depth = img->pitch / img->w;
 	width = img->w;
 	height = img->h;
-
-	glm::vec3(glm::vec2(1, 2), 1);
 
 	//main_window.loadImage("cat.png", tex_image, depth, width, height);
 	main_graphics.setImage(tex_image, width, height, depth);
@@ -191,9 +194,10 @@ int main(int argc, char* argv[]) {
 	boxes.push_back(mainBox);
 	createBox();
 	main_graphics.setZoom(3);
+	composer.makeAtlas(glyphs, 0, 512, 512);
 
 	//Engine::GUINode text = composeText("Hello world");
-	Engine::GUINodeID testQuad = Engine::make_billboard(composer, Engine::vec2(0.0f, 0.0f), Engine::vec2(1.0f, 1.0f));
+	Engine::GUINodeID testQuad = Engine::make_billboard(composer, 0, 106);
 	composer.setPosition(testQuad, Engine::vec3(124.0, 834.0, 0));
 	composer.setSize(testQuad, Engine::vec2(400.0f, 200.0f));
 	composer.setScale(testQuad, Engine::vec3(0.5f, 1.0f, 1.0f));
@@ -201,7 +205,7 @@ int main(int argc, char* argv[]) {
 	composer.setColor(testQuad, Engine::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	composer.setAdjustMode(testQuad, Engine::GUIAdjustMode::Stretch);
 
-	Engine::GUINodeID box5 = Engine::make_billboard(composer, Engine::vec2(0.0f, 0.0f), Engine::vec2(1.0f, 1.0f));
+	Engine::GUINodeID box5 = Engine::make_billboard(composer, 0, 85);
 	composer.setPosition(box5, Engine::vec3(139.0f, 0, 0));
 	composer.setRotationZ(box5, Engine::radians(45.0f));
 	composer.setSize(box5, Engine::vec2(100.0, 100.0));
@@ -211,7 +215,7 @@ int main(int argc, char* argv[]) {
 	composer.setAnchorX(box5, true);
 	composer.setAdjustMode(box5, Engine::GUIAdjustMode::Zoom);
 
-	Engine::GUINodeID box6 = Engine::make_billboard(composer, Engine::vec2(0.0f, 0.0f), Engine::vec2(1.0f, 1.0f));
+	Engine::GUINodeID box6 = Engine::make_billboard(composer, 0, 89);
 	composer.setPosition(box6, Engine::vec3(-50.0f, 0, 0));
 	composer.setSize(box6, Engine::vec2(50.0f, 50.0));
 	composer.setColor(box6, Engine::vec4(0.0f, 0.0f, 1.0f, 1.0f));
@@ -219,14 +223,19 @@ int main(int argc, char* argv[]) {
 	composer.setAdjustMode(box6, Engine::GUIAdjustMode::Fit);
 	composer.setPivot(box6, Engine::GUIPivot::East);
 
-	Engine::Font font;
-	for (size_t i = 0; i < 255; i++) {
-		font.glyphs[i] = glyphs[i];
-	}
-
-	Engine::GUINodeID box_text = Engine::make_text(composer, "Hello!", &font);
+	Engine::GUINodeID box_text = Engine::make_text(composer, "Hello!", 0);
 	composer.setChildren(box5, box_text);
 
+	Engine::GuiSerialize packer;
+
+	size_t dataLen;
+	std::byte* data = packer.serialize(composer, dataLen);
+	
+
+	std::ofstream file("gui.kgui", std::ios::binary);
+	file.write(reinterpret_cast<const char*>(data), dataLen);
+	file.close();
+	composer = packer.deserialize(data, dataLen);
 	uint32_t size;
 	auto arr = composer.getChildrens(box5, &size);
 	float angle = 0;

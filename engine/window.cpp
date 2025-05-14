@@ -71,6 +71,10 @@ namespace Engine {
 
     }
 
+    void Window::saveImage(std::filesystem::path path, const std::vector<uint8_t>& pixels, uint8_t depth, uint32_t width, uint32_t height) {
+
+    }
+
     void Window::present() {        
         SDL_GL_SwapWindow(window);
     }

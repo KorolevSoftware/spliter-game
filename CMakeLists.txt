@@ -33,6 +33,8 @@ set(ENGINE
 	gui_billboard.cpp
         gui_text.cpp
         gui_text.h
+        gui_serializer.cpp
+        gui_serializer.h
     gui_math.h
 )
 

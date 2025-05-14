@@ -1,19 +1,10 @@
-#include <glm/vec2.hpp> // glm::vec2
-#include <glm/vec3.hpp> // glm::vec2
-#include <glm/vec4.hpp> // glm::vec2
 #include "gui_billboard.h"
 
 namespace Engine {
-	struct BilboardData: IGUIPrimitive {
-		vec2 textureCoord1;
-		vec2 textureCoord2;
-		BilboardData(vec2 textureCoord1, vec2 textureCoord2) : textureCoord1(textureCoord1), textureCoord2(textureCoord2) {}
-		int generator(GUIVertex* vertex, const GUIBase* base) override;
-		bool input(const vec2& clickPosition, const GUIBase* base) override;
-	};
+	BillboardData::BillboardData(vec2 textureCoord1, vec2 textureCoord2) : textureCoord1(textureCoord1), textureCoord2(textureCoord2) {}
 
-	bool BilboardData::input(const vec2& clickPosition, const GUIBase* base)  {
-		vec2 dim = base->size / 2.0f;
+	bool BillboardData::input(const vec2& clickPosition, const GUIBase& base)  {
+		vec2 dim = base.size / 2.0f;
 
 		if (-dim.x > clickPosition.x || dim.x < clickPosition.x)
 			return false;
@@ -21,12 +12,11 @@ namespace Engine {
 		if (-dim.y > clickPosition.y || dim.y < clickPosition.y)
 			return false;
 
-		int gg = 0;
 		return true;
 	}
 
-	int BilboardData::generator(GUIVertex* vertexBuffer, const GUIBase* base) {
-		vec2 dim = base->size / 2.0f;
+	int BillboardData::generator(GUIVertex* vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) {
+		vec2 dim = base.size / 2.0f;
 
 			//2-----------------------3
 			//|                       |
@@ -50,8 +40,9 @@ namespace Engine {
 		vec2 textCoord4 = vec2(this->textureCoord2.x, this->textureCoord1.y);
 
 		for(auto i = 0; i < 6; i++) {
-			vertexBuffer[i].color = base->color;
+			vertexBuffer[i].color = base.color;
 		}
+
 		vertexBuffer[0].position = position1;
 		vertexBuffer[0].texCoords = this->textureCoord1;
 
@@ -72,11 +63,17 @@ namespace Engine {
 		return 6;
 	}
 
-	GUINodeID make_billboard(GUIComposer& composer, const vec2& textureCoord1, const vec2& textureCoord2) {
-		GUINodeID node = composer.makeNode();
-		IGUIPrimitive* primitive = new BilboardData(textureCoord1, textureCoord2);
-		composer.setPrimitive(primitive, node);
 
+	GUINodeID make_billboard(GUIComposer& composer, uint32_t atlasID, uint32_t patchID) {
+		const Atlas& atlas = composer.atlasBuffer[atlasID];
+		const Patch& patch = atlas.images.find(patchID)->second;
+
+		GUINodeID node = composer.makeNode();
+
+		vec2 textureCoord1 = vec2(patch.origin) / vec2(atlas.width, atlas.height);
+		vec2 textureCoord2 = vec2(patch.size) / vec2(atlas.width, atlas.height);
+		IGUIPrimitive* primitive = new BillboardData(textureCoord1, textureCoord2);
+		composer.setPrimitive(primitive, node);
 		return node;
 	}
-}; 
+};

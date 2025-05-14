@@ -3,9 +3,13 @@
 #include <string>
 
 namespace Engine {
-	struct Font {
-		std::array<Patch, 255> glyphs;
+	struct TextData : IGUIPrimitive {
+		std::string text;
+		uint32_t atlasID;
+		TextData(const std::string& text, uint32_t atlasID);
+		int generator(GUIVertex* vertex, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) override;
+		bool input(const vec2& clickPosition, const GUIBase& base) override;
 	};
 
-	GUINodeID make_text(GUIComposer& composer, const std::string& text, Font* font);
+	GUINodeID make_text(GUIComposer& composer, const std::string& text, uint32_t atlasID);
 };

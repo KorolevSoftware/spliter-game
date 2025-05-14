@@ -3,6 +3,7 @@
 #include "gui_math.h"
 #include <vector>
 #include <array>
+#include <unordered_map>
 
 namespace Engine {
 	float radians(float angle);
@@ -31,6 +32,16 @@ namespace Engine {
 		Stretch
 	};
 
+	struct Patch {
+		i16vec2 origin, size;
+	};
+
+	struct Atlas {
+		std::unordered_map<uint32_t, Patch> images;
+		uint32_t textureID;
+		uint32_t width, height;
+	};
+
 	struct GUIVertex {
 		vec3 position;
 		vec4 color;
@@ -45,8 +56,8 @@ namespace Engine {
 	};
 
 	struct IGUIPrimitive {
-		virtual int generator(GUIVertex* vertex, const GUIBase* base) = 0;
-		virtual bool input(const vec2& clickPosition, const GUIBase* base) = 0;
+		virtual int generator(GUIVertex * vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) = 0;
+		virtual bool input(const vec2& clickPosition, const GUIBase& base) = 0;
 	};
 
 	using GUINodeID = uint32_t;
@@ -73,16 +84,6 @@ namespace Engine {
 		std::list<GUINodeID> children;
 
 		GUINode();
-	};
-
-	struct Patch {
-		i16vec2 origin, size;
-	};
-
-	struct Atlas {
-		std::array< Patch, 255> images;
-		uint32_t textureID;
-		i16vec2 width, height;
 	};
 
 	struct GUIDrawCommand {
@@ -117,6 +118,8 @@ namespace Engine {
 		void setPivot(GUINodeID node, GUIPivot pivot);
 		void setHesh(GUINodeID node, uint32_t hash);
 
+		uint32_t makeAtlas(std::unordered_map<uint32_t, Patch> images, uint32_t textureID, uint32_t width, uint32_t height);
+
 		GUINodeID getHesh(GUINodeID node) const;
 		GUIPivot getPivot(GUINodeID node) const;
 		bool getAnchorY(GUINodeID node) const;
@@ -130,10 +133,10 @@ namespace Engine {
 		uint32_t getChildrenCount(GUINodeID node) const;
 		GUINodeID* getChildrens(GUINodeID node, uint32_t* size) const;
 
-	private:
 		uint32_t vertexArrayOffset;
 		GUIVertex* vertexBuffer;
 		std::vector<GUINode> nodePoolBuffer;
 		std::vector<GUIDrawCommand> commandBuffer;
+		std::vector<Atlas> atlasBuffer;
 	};
 };

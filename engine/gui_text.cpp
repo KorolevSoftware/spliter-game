@@ -1,17 +1,11 @@
 #include "gui_text.h"
-#include "string"
-namespace Engine {
+#include <numeric>
 
-	struct TextData: IGUIPrimitive {
-		std::string text;
-		Font* font;
-		TextData(const std::string& text, Font* font) {
-			this->text = text;
-			this->font = font;
-		}
-		int generator(GUIVertex* vertex, const GUIBase* base) override;
-		bool input(const vec2& clickPosition, const GUIBase* base) override;
-	};
+namespace Engine {
+	TextData::TextData(const std::string& text, uint32_t atlasID) {
+		this->text = text;
+		this->atlasID = atlasID;
+	}
 
 	int make_char(GUIVertex* vertexBuffer, const vec4& color, const vec3& position, const vec2& dim, const vec2& textureCoord1, const vec2& textureCoord2) {
 		//2-----------------------3
@@ -42,34 +36,40 @@ namespace Engine {
 		return 6;
 	}
 
-	bool TextData::input(const vec2& clickPosition, const GUIBase* base) {
+	bool TextData::input(const vec2& clickPosition, const GUIBase& base) {
 		return false;
 	}
 
-	int TextData::generator(GUIVertex* vertexBuffer, const GUIBase* base) {
-
-		int textOffestX = 0;
-		int vertexAddCount = 0;
-		float textOffsetY = 0;
-
+	int TextData::generator(GUIVertex * vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) {
 		if (this->text.empty()) {
 			return 0;
-
 		}
-		auto first = this->text[0];
-		auto patch = this->font->glyphs[first];
-		textOffsetY = (patch.origin.y - patch.size.y)/ 2;
 
-		for (auto& ch : this->text) { // Offset by X axis
-			Patch r_ch = this->font->glyphs[ch];
-			textOffestX -= r_ch.size.x - r_ch.origin.x;
+		const Atlas& atlasFont = atlasBuffer[atlasID];
+
+		std::vector<Patch> textPatch;
+		textPatch.reserve(this->text.length());
+		for (const auto& ch : this->text) { // Offset by X axis
+			if (ch == 0) {
+				continue;
+			}
+			auto iter = atlasFont.images.find(ch);
+			textPatch.push_back(iter->second);
 		}
+
+		int textOffestX = std::accumulate(
+			textPatch.begin(),
+			textPatch.end(),
+			0,
+			[](int sum, const Patch& patch) {return sum - (patch.size.x - patch.origin.x); });
+
+		auto patch = textPatch.front();
+		float textOffsetY = (patch.origin.y - patch.size.y) / 2;
 
 		textOffestX /= 2;
-		for (auto& ch : this->text) {
-			Patch r_ch = this->font->glyphs[ch];
-
-			vec4 normalize = vec4(r_ch.origin, r_ch.size) / 512.0f;
+		int vertexAddCount = 0;
+		for (const auto& r_ch : textPatch) {
+			vec4 normalize = vec4(r_ch.origin, r_ch.size) / float(atlasFont.width);
 			vec2 textureCoord1 = vec2(normalize.x, normalize.y);
 			vec2 textureCoord2 = vec2(normalize.z, normalize.p);
 
@@ -85,9 +85,9 @@ namespace Engine {
 		return vertexAddCount;
 	}
 
-	GUINodeID make_text(GUIComposer& composer, const std::string& text, Font* font) {
+	GUINodeID make_text(GUIComposer& composer, const std::string& text, uint32_t atlasID) {
 		GUINodeID node = composer.makeNode();
-		IGUIPrimitive* primitive = new TextData(text, font);
+		IGUIPrimitive* primitive = new TextData(text, atlasID);
 		composer.setPrimitive(primitive, node);
 		return node;
 	}
