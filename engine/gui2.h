@@ -55,8 +55,16 @@ namespace Engine {
 		vec4 color;
 	};
 
+	struct GUIDrawCommand {
+		uint32_t start;
+		uint32_t count;
+		uint32_t textureID;
+		GUIDrawCommand(uint32_t count, uint32_t textureID);
+		static GUIDrawCommand None();
+	};
+
 	struct IGUIPrimitive {
-		virtual int generator(GUIVertex * vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) = 0;
+		virtual GUIDrawCommand generator(GUIVertex* vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) = 0;
 		virtual bool input(const vec2& clickPosition, const GUIBase& base) = 0;
 	};
 
@@ -79,18 +87,14 @@ namespace Engine {
 
 		GUIBase base;
 		IGUIPrimitive* primitive;
-		
+
 		GUINodeID parent;
 		std::list<GUINodeID> children;
 
 		GUINode();
 	};
 
-	struct GUIDrawCommand {
-		uint32_t start;
-		uint32_t end;
-		uint32_t textureID;
-	};
+	
 
 	struct GUIComposer final {
 		GUIComposer(uint32_t vertexPoolSize, uint32_t nodePoolSize);
@@ -100,7 +104,7 @@ namespace Engine {
 		uint32_t getVertexCount() const;
 		uint32_t getRenderBufSizeof() const;
 		bool pickNode(GUINodeID node, const vec2& pos) const;
-		
+
 		GUINodeID makeNode();
 		GUINodeID findNode(uint32_t hash) const;
 		bool isValide(GUINodeID node) const;

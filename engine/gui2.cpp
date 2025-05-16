@@ -114,14 +114,29 @@ namespace Engine {
 
 		if (nodeRef.visable) {
 			[[likely]]
-			int addVertexCount = 0;
-			addVertexCount = nodeRef.primitive->generator(&vertexBuffer[vertexArrayOffset], nodeRef.base, atlasBuffer);
+			GUIDrawCommand draw = nodeRef.primitive->generator(&vertexBuffer[vertexArrayOffset], nodeRef.base, atlasBuffer);
+			if (draw.count > 0) { // dont need create new draw command
+				[[likely]]
+				draw.start = vertexArrayOffset;
+				for (auto i = vertexArrayOffset; i < vertexArrayOffset + draw.count; i++) {
+					GUIVertex& vertex = vertexBuffer[i];
+					vertex.position = resize_vec<3>(nodeRef.localTransform * vec4(vertex.position, 1.0f));
+				}
+				vertexArrayOffset += draw.count;
 
-			for (auto i = vertexArrayOffset; i < vertexArrayOffset + addVertexCount; i++) {
-				GUIVertex& vertex = vertexBuffer[i];
-				vertex.position = resize_vec<3>(nodeRef.localTransform * vec4(vertex.position, 1.0f));
+				if (commandBuffer.empty()) {
+					commandBuffer.push_back(draw);
+				} else {
+					GUIDrawCommand& drawLast = commandBuffer.front();
+
+					// Batching if next draw command equal from last
+					if (drawLast.textureID == draw.textureID && (drawLast.start + drawLast.count) == draw.start) {
+						drawLast.count += draw.count;
+					} else {
+						commandBuffer.push_back(draw);
+					}
+				}
 			}
-			vertexArrayOffset += addVertexCount;
 		}
 
 		for (const GUINodeID& id : nodeRef.children) {
@@ -314,5 +329,9 @@ namespace Engine {
 
 	float Engine::radians(float angle) {
 		return angle * (3.14 / 180.0f);
+	}
+	GUIDrawCommand::GUIDrawCommand(uint32_t count, uint32_t textureID):count(count), textureID(textureID) {}
+	GUIDrawCommand GUIDrawCommand::None() {
+		return GUIDrawCommand(0, 0);
 	}
 };

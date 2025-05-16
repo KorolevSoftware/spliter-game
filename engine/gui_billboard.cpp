@@ -1,7 +1,7 @@
 #include "gui_billboard.h"
 
 namespace Engine {
-	BillboardData::BillboardData(vec2 textureCoord1, vec2 textureCoord2) : textureCoord1(textureCoord1), textureCoord2(textureCoord2) {}
+	BillboardData::BillboardData(vec2 textureCoord1, vec2 textureCoord2, uint32_t atlasID) : textureCoord1(textureCoord1), textureCoord2(textureCoord2), atlasID(atlasID){}
 
 	bool BillboardData::input(const vec2& clickPosition, const GUIBase& base)  {
 		vec2 dim = base.size / 2.0f;
@@ -15,7 +15,7 @@ namespace Engine {
 		return true;
 	}
 
-	int BillboardData::generator(GUIVertex* vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) {
+	GUIDrawCommand BillboardData::generator(GUIVertex* vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) {
 		vec2 dim = base.size / 2.0f;
 
 			//2-----------------------3
@@ -60,7 +60,8 @@ namespace Engine {
 
 		vertexBuffer[5].position = position6;
 		vertexBuffer[5].texCoords = this->textureCoord2;
-		return 6;
+
+		return GUIDrawCommand(6, atlasID);
 	}
 
 
@@ -72,7 +73,7 @@ namespace Engine {
 
 		vec2 textureCoord1 = vec2(patch.origin) / vec2(atlas.width, atlas.height);
 		vec2 textureCoord2 = vec2(patch.size) / vec2(atlas.width, atlas.height);
-		IGUIPrimitive* primitive = new BillboardData(textureCoord1, textureCoord2);
+		IGUIPrimitive* primitive = new BillboardData(textureCoord1, textureCoord2, atlasID);
 		composer.setPrimitive(primitive, node);
 		return node;
 	}

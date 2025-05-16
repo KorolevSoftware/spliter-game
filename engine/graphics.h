@@ -22,7 +22,8 @@ namespace Engine {
 		void endDraw();
 		void drawBoxes(const std::vector<Box>& boxes);
 		void setImage(const std::vector<uint8_t>& pixels, uint32_t width, uint32_t height, uint8_t depth);
-		void drawGui(const uint8_t* data, uint32_t sizeofdata, uint32_t vertexCount);
+		void setGuiBuffer(const uint8_t* data, uint32_t sizeofdata);
+		void drawCommand(uint32_t start, uint32_t vertexCount);
 		void setZoom(float zoom);
 		void setCameraOffsetY(float offset);
 		float aspectRation;

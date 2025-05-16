@@ -40,9 +40,9 @@ namespace Engine {
 		return false;
 	}
 
-	int TextData::generator(GUIVertex * vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) {
+	GUIDrawCommand TextData::generator(GUIVertex * vertexBuffer, const GUIBase& base, const std::vector<Atlas>& atlasBuffer) {
 		if (this->text.empty()) {
-			return 0;
+			return GUIDrawCommand::None();
 		}
 
 		const Atlas& atlasFont = atlasBuffer[atlasID];
@@ -73,7 +73,7 @@ namespace Engine {
 			vec2 textureCoord1 = vec2(normalize.x, normalize.y);
 			vec2 textureCoord2 = vec2(normalize.z, normalize.p);
 
-			vec3 position = vec3(textOffestX,-textOffsetY, 0);
+			vec3 position = vec3(textOffestX, -textOffsetY, 0);
 			vec2 size = vec2(
 				r_ch.size.x - r_ch.origin.x,
 				r_ch.origin.y - r_ch.size.y
@@ -82,7 +82,7 @@ namespace Engine {
 			vertexAddCount += make_char(&vertexBuffer[vertexAddCount], vec4(0.0f, 0.0f, 0.0f, 0.0f), position, size, textureCoord1, textureCoord2);
 			textOffestX += size.x;
 		}
-		return vertexAddCount;
+		return GUIDrawCommand(vertexAddCount, atlasID);
 	}
 
 	GUINodeID make_text(GUIComposer& composer, const std::string& text, uint32_t atlasID) {

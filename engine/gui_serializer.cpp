@@ -123,6 +123,7 @@ namespace {
 			serialize(data, type);
 			serialize(data, billboardData->textureCoord1);
 			serialize(data, billboardData->textureCoord2);
+			serialize(data, billboardData->atlasID);
 		} else {
 			uint32_t type = 0; // Unknown
 			serialize(data, type);
@@ -174,9 +175,11 @@ namespace {
 		case 2:
 		{ // BillboardData
 			vec2 coord1, coord2;
+			uint32_t atlasID;
 			deserialize(data, offset, coord1);
 			deserialize(data, offset, coord2);
-			node.primitive = new BillboardData(coord1, coord2);
+			deserialize(data, offset, atlasID);
+			node.primitive = new BillboardData(coord1, coord2, atlasID);
 			break;
 		}
 		default:

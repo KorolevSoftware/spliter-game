@@ -98,7 +98,7 @@ SDL_Surface* initFont(char* filename) {
 		32,                 // глубина цвета (32 бита = 4 байта)
 		SDL_PIXELFORMAT_RGBA32  // формат: R, G, B, A
 	);
-	//SDL_FillRect(surface, NULL, SDL_MapRGBA(surface->format, 255, 255, 255, 0));
+	SDL_FillRect(surface, NULL, SDL_MapRGBA(surface->format, 255, 255, 255, 0));
 
 	dest.origin = Engine::i16vec2(0, 0);
 	SDL_Color white{ 255, 255, 255, 255 };
@@ -257,8 +257,9 @@ int main(int argc, char* argv[]) {
 		if (select.position.z < -3.0f && !moveByX) {
 			dir = 1;
 		}
+
 		angle += 1;
-		//composer.setRotationZ(box5, Engine::radians(angle));
+
 		if (moveByX) {
 			select.position.x += dir * 0.016;
 		} else {
@@ -268,12 +269,14 @@ int main(int argc, char* argv[]) {
 		if (gameOver) {
 			main_graphics.setZoom(5);
 		}
+
 		y_offset_off = lerp(y_offset_off, y_offset, 0.016);
 
 		Engine::vec2 screenResolution((float)main_window.getWidth(), (float)main_window.getHeight());
 		Engine::vec2 vec2Zero(0.0f);
 
 		composer.compose(testQuad, localResolution, screenResolution, vec2Zero);
+
 		// INPUT
 		Engine::WindowEvent wEvent;
 		while (main_window.getEvent(wEvent)) { // event loop
@@ -295,8 +298,10 @@ int main(int argc, char* argv[]) {
 			main_graphics.setCameraOffsetY(y_offset_off);
 
 			// TODO fix gui
-
-			main_graphics.drawGui(composer.getBufferData(), composer.getRenderBufSizeof(), composer.getVertexCount());
+			main_graphics.setGuiBuffer(composer.getBufferData(), composer.getRenderBufSizeof());
+			for (const auto& drawCommand : composer.commandBuffer) {
+				main_graphics.drawCommand(drawCommand.start, drawCommand.count);
+			}
 
 			//mainBox.size = glm::vec3(2.0f);
 		}
